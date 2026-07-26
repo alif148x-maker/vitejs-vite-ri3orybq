@@ -581,7 +581,7 @@ export default function CroquisApp() {
           )}
         </div>
         <div className="flex-1 flex flex-col gap-5 order-2 min-w-0">
-          <div className="relative rounded-xl overflow-hidden cardline" style={{ height: 420 }}>
+          <div className="relative rounded-xl overflow-hidden cardline" style={{ height: 250 }}>
             <div ref={mountRef} className="w-full h-full" />
             <div className="absolute top-3 right-3 flex flex-col gap-2">
               <button onClick={() => zoom(-0.8)} className="ctrlbtn rounded-lg p-2.5 shadow-sm"><Plus size={16} /></button>
