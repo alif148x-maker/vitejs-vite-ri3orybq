@@ -591,33 +591,23 @@ export default function CroquisApp() {
             </div>
           </div>
           <div className="cardline rounded-xl p-5 flex-1 flex flex-col min-h-0">
-            <div className="flex items-center gap-2 mb-4"><ShoppingCart size={18} style={{ color: "var(--brand)" }} /><h3 className="disp font-semibold text-base">Catálogo</h3></div>
-            <div className="overflow-y-auto pr-1 pb-4" style={{ maxHeight: 420 }}>
-              {categoryNames.map((catName) => {
-                const items = catalog.filter((c) => c.category === catName);
-                if (items.length === 0) return null;
-                return (
-                  <div key={catName} className="mb-6 last:mb-0">
-                    <h4 className="mono text-[11px] uppercase tracking-widest font-semibold mb-2.5 pb-1.5 border-b" style={{ color: "var(--walnut)", borderColor: "var(--line)" }}>
-                      {catName}
-                    </h4>
-                    <div className="flex flex-col gap-2.5">
-                      {items.map((item) => (
-                        <div key={item.id} className="catcard rounded-lg p-3.5 flex gap-3 items-center">
-                          <div className="w-14 h-14 rounded-md flex-shrink-0" style={{ background: item.color }} />
-                          <div className="min-w-0 flex-1 flex flex-col gap-0.5">
-                            <p className="text-[13.5px] font-medium leading-tight truncate">{item.name}</p>
-                            <p className="mono text-[11px]" style={{ color: "var(--brand-light)" }}>{item.w}×{item.d} m</p>
-                            <p className="mono text-[12.5px] font-semibold" style={{ color: "var(--walnut)" }}>${item.price}</p>
-                          </div>
-                          <button onClick={() => addItem(item.id)} className="btn-primary rounded-md p-2 flex-shrink-0"><Plus size={16} /></button>
-                        </div>
-                      ))}
-                    </div>
+            <div className="flex items-center gap-2 mb-4"><ShoppingCart size={20} style={{ color: "var(--brand)" }} /><h3 className="disp font-semibold text-lg">Catálogo {store.name}</h3></div>
+            <div className="flex gap-2 overflow-x-auto pb-3 mb-3">
+              {["Todas", ...categoryNames].map((c) => <button key={c} className={`tabpill ${catTab === c ? "active" : ""}`} onClick={() => setCatTab(c)}>{c}</button>)}
+            </div>
+            <div className="flex flex-col gap-3 overflow-y-auto pr-1 pb-2" style={{ maxHeight: 460 }}>
+              {filteredCatalog.map((item) => (
+                <div key={item.id} className="catcard rounded-xl p-4 flex gap-4 items-center">
+                  <div className="w-16 h-16 rounded-lg flex-shrink-0" style={{ background: item.color }} />
+                  <div className="min-w-0 flex-1 flex flex-col gap-0.5">
+                    <p className="text-[16px] font-medium leading-tight truncate">{item.name}</p>
+                    <p className="mono text-[12px]" style={{ color: "var(--brand-light)" }}>{item.w}×{item.d} m</p>
+                    <p className="mono text-[14px] font-semibold" style={{ color: "var(--walnut)" }}>${item.price}</p>
                   </div>
-                );
-              })}
-              {catalog.length === 0 && <p className="text-[13px] py-5 text-center" style={{ color: "var(--brand-light)" }}>Este catálogo aún no tiene productos.</p>}
+                  <button onClick={() => addItem(item.id)} className="btn-primary rounded-lg p-2.5 flex-shrink-0"><Plus size={18} /></button>
+                </div>
+              ))}
+              {filteredCatalog.length === 0 && <p className="text-[13px] py-5 text-center" style={{ color: "var(--brand-light)" }}>Este catálogo aún no tiene productos.</p>}
             </div>
           </div>
         </div>
@@ -639,6 +629,3 @@ export default function CroquisApp() {
     </div>
   );
 }
-
-
-
