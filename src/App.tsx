@@ -581,13 +581,15 @@ export default function CroquisApp() {
           )}
         </div>
         <div className="flex-1 flex flex-col gap-5 order-2 min-w-0">
-          <div className="relative rounded-xl overflow-hidden cardline" style={{ height: 250 }}>
-            <div ref={mountRef} className="w-full h-full" />
-            <div className="absolute top-3 right-3 flex flex-col gap-2">
-              <button onClick={() => zoom(-0.8)} className="ctrlbtn rounded-lg p-2.5 shadow-sm"><Plus size={16} /></button>
-              <button onClick={() => zoom(0.8)} className="ctrlbtn rounded-lg p-2.5 shadow-sm"><Minus size={16} /></button>
-              <button onClick={topView} className="ctrlbtn rounded-lg p-2.5 shadow-sm"><Compass size={16} /></button>
-              <button onClick={resetView} className="ctrlbtn rounded-lg p-2.5 shadow-sm mono text-[10px]">RST</button>
+          <div className="cardline rounded-xl overflow-hidden">
+            <div className="relative" style={{ height: 260 }}>
+              <div ref={mountRef} className="w-full h-full" />
+            </div>
+            <div className="flex items-center justify-center gap-2 py-2.5 border-t" style={{ borderColor: "var(--line)" }}>
+              <button onClick={() => zoom(-0.8)} className="ctrlbtn rounded-lg p-2.5"><Plus size={16} /></button>
+              <button onClick={() => zoom(0.8)} className="ctrlbtn rounded-lg p-2.5"><Minus size={16} /></button>
+              <button onClick={topView} className="ctrlbtn rounded-lg p-2.5"><Compass size={16} /></button>
+              <button onClick={resetView} className="ctrlbtn rounded-lg p-2.5 mono text-[10px]">RST</button>
             </div>
           </div>
           <div className="cardline rounded-xl p-5 flex-1 flex flex-col min-h-0">
