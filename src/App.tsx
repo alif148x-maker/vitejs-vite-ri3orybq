@@ -591,43 +591,54 @@ export default function CroquisApp() {
             </div>
           </div>
           <div className="cardline rounded-xl p-5 flex-1 flex flex-col min-h-0">
-            <div className="flex items-center gap-2 mb-3"><ShoppingCart size={18} style={{ color: "var(--brand)" }} /><h3 className="disp font-semibold text-base">Catálogo</h3></div>
-            <div className="flex gap-2 overflow-x-auto pb-3 mb-2">
-              {["Todas", ...categoryNames].map((c) => <button key={c} className={`tabpill ${catTab === c ? "active" : ""}`} onClick={() => setCatTab(c)}>{c}</button>)}
-            </div>
-            <div className="grid sm:grid-cols-2 gap-3 overflow-y-auto pr-1" style={{ maxHeight: 320 }}>
-              {filteredCatalog.map((item) => (
-                <div key={item.id} className="catcard rounded-lg p-3.5 flex gap-3 items-center">
-                  <div className="w-14 h-14 rounded-md flex-shrink-0" style={{ background: item.color }} />
-                  <div className="min-w-0 flex-1 flex flex-col gap-0.5">
-                    <p className="text-[13.5px] font-medium leading-tight truncate">{item.name}</p>
-                    <p className="mono text-[11px]" style={{ color: "var(--brand-light)" }}>{item.w}×{item.d} m</p>
-                    <p className="mono text-[12.5px] font-semibold" style={{ color: "var(--walnut)" }}>${item.price}</p>
+            <div className="flex items-center gap-2 mb-4"><ShoppingCart size={18} style={{ color: "var(--brand)" }} /><h3 className="disp font-semibold text-base">Catálogo</h3></div>
+            <div className="overflow-y-auto pr-1 pb-4" style={{ maxHeight: 420 }}>
+              {categoryNames.map((catName) => {
+                const items = catalog.filter((c) => c.category === catName);
+                if (items.length === 0) return null;
+                return (
+                  <div key={catName} className="mb-6 last:mb-0">
+                    <h4 className="mono text-[11px] uppercase tracking-widest font-semibold mb-2.5 pb-1.5 border-b" style={{ color: "var(--walnut)", borderColor: "var(--line)" }}>
+                      {catName}
+                    </h4>
+                    <div className="flex flex-col gap-2.5">
+                      {items.map((item) => (
+                        <div key={item.id} className="catcard rounded-lg p-3.5 flex gap-3 items-center">
+                          <div className="w-14 h-14 rounded-md flex-shrink-0" style={{ background: item.color }} />
+                          <div className="min-w-0 flex-1 flex flex-col gap-0.5">
+                            <p className="text-[13.5px] font-medium leading-tight truncate">{item.name}</p>
+                            <p className="mono text-[11px]" style={{ color: "var(--brand-light)" }}>{item.w}×{item.d} m</p>
+                            <p className="mono text-[12.5px] font-semibold" style={{ color: "var(--walnut)" }}>${item.price}</p>
+                          </div>
+                          <button onClick={() => addItem(item.id)} className="btn-primary rounded-md p-2 flex-shrink-0"><Plus size={16} /></button>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <button onClick={() => addItem(item.id)} className="btn-primary rounded-md p-2 flex-shrink-0"><Plus size={16} /></button>
-                </div>
-              ))}
-              {filteredCatalog.length === 0 && <p className="text-[13px] col-span-2 py-5 text-center" style={{ color: "var(--brand-light)" }}>Este catálogo aún no tiene productos.</p>}
+                );
+              })}
+              {catalog.length === 0 && <p className="text-[13px] py-5 text-center" style={{ color: "var(--brand-light)" }}>Este catálogo aún no tiene productos.</p>}
             </div>
           </div>
         </div>
       </main>
-      <div className="sticky bottom-0 border-t px-4 sm:px-6 py-3 flex items-center justify-between gap-3 flex-wrap" style={{ borderColor: "var(--line)", background: "var(--panel)" }}>
+      <div className="sticky bottom-0 border-t px-4 sm:px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3" style={{ borderColor: "var(--line)", background: "var(--panel)" }}>
         <div className="min-w-0">
           <p className="mono text-[10px]" style={{ color: "var(--brand-light)" }}>{placed.length} {placed.length === 1 ? "pieza" : "piezas"}</p>
-          <p className="disp font-bold text-lg">${total.toLocaleString()}</p>
+          <p className="disp font-bold text-xl">${total.toLocaleString()}</p>
         </div>
         <div className="flex gap-2">
-          <a href={placed.length ? waLink : undefined} target="_blank" rel="noreferrer" className="btn-wa rounded-lg px-3.5 py-2.5 text-sm font-medium flex items-center gap-2" style={{ opacity: placed.length ? 1 : 0.4, pointerEvents: placed.length ? "auto" : "none" }}>
-            <MessageCircle size={15} /> WhatsApp
+          <a href={placed.length ? waLink : undefined} target="_blank" rel="noreferrer" className="btn-wa rounded-lg px-4 py-3 text-sm font-medium flex items-center justify-center gap-2 flex-1 sm:flex-none" style={{ opacity: placed.length ? 1 : 0.4, pointerEvents: placed.length ? "auto" : "none" }}>
+            <MessageCircle size={16} /> WhatsApp
           </a>
-          <button disabled={placed.length === 0} onClick={sendQuote} className="btn-primary rounded-lg px-4 py-2.5 text-sm font-medium flex items-center gap-2 disabled:opacity-40">
-            {sent ? (<><Check size={15} /> Guardada</>) : "Enviar cotización"}
+          <button disabled={placed.length === 0} onClick={sendQuote} className="btn-primary rounded-lg px-4 py-3 text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-40 flex-1 sm:flex-none">
+            {sent ? (<><Check size={16} /> Guardada</>) : "Enviar cotización"}
           </button>
         </div>
       </div>
     </div>
   );
 }
+
 
 
