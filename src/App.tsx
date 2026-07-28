@@ -299,6 +299,7 @@ export default function CroquisApp() {
      try {
       const { data: storeRow, error: storeErr } = await supabase.from("stores").select("*").eq("slug", STORE_SLUG).single();
       if (storeErr || !storeRow) { setLoadStatus("error"); setLoadError(storeErr?.message || "tienda no encontrada"); return; }
+      setStore(storeRow);
       const { data: cats } = await supabase.from("categories").select("*").eq("store_id", storeRow.id).order("sort_order");
       const catNameById = new Map((cats || []).map((c) => [c.id, c.name]));
       setCategoryNames((cats || []).map((c) => c.name));
