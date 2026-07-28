@@ -278,6 +278,8 @@ export default function CroquisApp() {
   const [catalog, setCatalog] = useState([]);
   const [categoryNames, setCategoryNames] = useState([]);
   const [loadStatus, setLoadStatus] = useState("cargando");
+  const [loadError, setLoadError] = useState("");
+
 
   const [room, setRoom] = useState({ width: 4, length: 2.8, height: 2.6, wallColor: "#F5F2EC", floorColor: "#C9A66B" });
   const [roomDraft, setRoomDraft] = useState({ width: "4", length: "2.8", height: "2.6" });
@@ -292,11 +294,11 @@ export default function CroquisApp() {
   const dragRef = useRef({ dragging: false, lastX: 0, lastY: 0, moved: 0 });
   const catalogById = useMemo(() => new Map(catalog.map((c) => [c.id, c])), [catalog]);
 
-  useEffect(() => {
+    useEffect(() => {
     (async () => {
+     try {
       const { data: storeRow, error: storeErr } = await supabase.from("stores").select("*").eq("slug", STORE_SLUG).single();
-      if (storeErr || !storeRow) { setLoadStatus("error"); return; }
-      setStore(storeRow);
+      if (storeErr || !storeRow) { setLoadStatus("error"); setLoadError(storeErr?.message || "tienda no encontrada"); return; }
       const { data: cats } = await supabase.from("categories").select("*").eq("store_id", storeRow.id).order("sort_order");
       const catNameById = new Map((cats || []).map((c) => [c.id, c.name]));
       setCategoryNames((cats || []).map((c) => c.name));
@@ -307,9 +309,14 @@ export default function CroquisApp() {
         type: p.furniture_type, w: Number(p.width_m), d: Number(p.depth_m), h: Number(p.height_m),
         color: p.color_hex, price: Number(p.price),
       })));
-      setLoadStatus("listo");
+           setLoadStatus("listo");
+     } catch (err) {
+       setLoadStatus("error");
+       setLoadError(err?.message || String(err));
+     }
     })();
   }, []);
+
 
   useEffect(() => {
     if (loadStatus !== "listo") return;
@@ -545,7 +552,8 @@ export default function CroquisApp() {
   if (loadStatus === "error" || !store) {
     return (
       <div className="min-h-screen flex items-center justify-center text-center p-6" style={{ background: "#F5F2EC", fontFamily: "Inter, sans-serif" }}>
-        No se pudo cargar la tienda "{STORE_SLUG}".
+                No se pudo cargar la tienda "{STORE_SLUG}".<br/>Detalle: {loadError}
+
       </div>
     );
   }
