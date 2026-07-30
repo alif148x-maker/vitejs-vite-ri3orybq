@@ -1,8 +1,11 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import * as THREE from "three";
 import { createClient } from "@supabase/supabase-js";
-import { RotateCw, Trash2, Plus, Minus, Home, Palette, Ruler, ShoppingCart, Move, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Compass, Check, MessageCircle } from "lucide-react";
+import { RotateCw, Trash2, Plus, Minus, Home, Palette, Ruler, ShoppingCart, Move, ArrowUp, ArrowDown, ArrowLeft, ArrowRight, Compass, Check, MessageCircle, LogOut, Store, Pencil, LayoutGrid, MessageSquareText, Phone, Clock, CircleDot, X, Mail, Lock } from "lucide-react";
 
+/* ------------------------------------------------------------------ */
+/* CONEXIÓN A SUPABASE                                                  */
+/* ------------------------------------------------------------------ */
 const SUPABASE_URL = "https://yqkvxceisuhxgndwxoqa.supabase.co";
 const SUPABASE_KEY = "sb_publishable_cmerPO_b3ygWKd59fyz1yQ_oMrQmVJK";
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -23,6 +26,10 @@ const FLOOR_COLORS = [
   { name: "Blanco piso", hex: "#EDEAE2" },
   { name: "Porcelanato gris", hex: "#8C8C86" },
 ];
+
+/* ------------------------------------------------------------------ */
+/* Constructores de muebles low-poly                                   */
+/* ------------------------------------------------------------------ */
 
 const box = (w, h, d, color, roughness = 0.75) =>
   new THREE.Mesh(new THREE.BoxGeometry(w, h, d), new THREE.MeshStandardMaterial({ color, roughness, metalness: 0.04 }));
@@ -273,13 +280,15 @@ function clampToRoom(x, z, w, d, roomW, roomL) {
   return { x: Math.min(halfW, Math.max(-halfW, x)), z: Math.min(halfL, Math.max(-halfL, z)) };
 }
 
-export default function CroquisApp() {
+/* ------------------------------------------------------------------ */
+/* Componente principal                                                */
+/* ------------------------------------------------------------------ */
+
+function CroquisApp() {
   const [store, setStore] = useState(null);
   const [catalog, setCatalog] = useState([]);
   const [categoryNames, setCategoryNames] = useState([]);
   const [loadStatus, setLoadStatus] = useState("cargando");
-  const [loadError, setLoadError] = useState("");
-
 
   const [room, setRoom] = useState({ width: 4, length: 2.8, height: 2.6, wallColor: "#F5F2EC", floorColor: "#C9A66B" });
   const [roomDraft, setRoomDraft] = useState({ width: "4", length: "2.8", height: "2.6" });
@@ -294,11 +303,11 @@ export default function CroquisApp() {
   const dragRef = useRef({ dragging: false, lastX: 0, lastY: 0, moved: 0 });
   const catalogById = useMemo(() => new Map(catalog.map((c) => [c.id, c])), [catalog]);
 
-    useEffect(() => {
+  /* ---------- cargar datos reales de Supabase ---------- */
+  useEffect(() => {
     (async () => {
-     try {
       const { data: storeRow, error: storeErr } = await supabase.from("stores").select("*").eq("slug", STORE_SLUG).single();
-      if (storeErr || !storeRow) { setLoadStatus("error"); setLoadError(storeErr?.message || "tienda no encontrada"); return; }
+      if (storeErr || !storeRow) { setLoadStatus("error"); return; }
       setStore(storeRow);
       const { data: cats } = await supabase.from("categories").select("*").eq("store_id", storeRow.id).order("sort_order");
       const catNameById = new Map((cats || []).map((c) => [c.id, c.name]));
@@ -310,15 +319,11 @@ export default function CroquisApp() {
         type: p.furniture_type, w: Number(p.width_m), d: Number(p.depth_m), h: Number(p.height_m),
         color: p.color_hex, price: Number(p.price),
       })));
-           setLoadStatus("listo");
-     } catch (err) {
-       setLoadStatus("error");
-       setLoadError(err?.message || String(err));
-     }
+      setLoadStatus("listo");
     })();
   }, []);
 
-
+  /* ---------- init three.js (una vez) ---------- */
   useEffect(() => {
     if (loadStatus !== "listo") return;
     const mount = mountRef.current;
@@ -423,6 +428,7 @@ export default function CroquisApp() {
     };
   }, [loadStatus]);
 
+  /* ---------- reconstruir cuarto ---------- */
   useEffect(() => {
     const t = threeRef.current;
     if (!t.roomGroup || !store) return;
@@ -468,6 +474,7 @@ export default function CroquisApp() {
     }));
   }, [room.width, room.length, room.height, room.wallColor, room.floorColor, store]);
 
+  /* ---------- sincronizar muebles colocados ---------- */
   useEffect(() => {
     const t = threeRef.current;
     if (!t.itemsGroup) return;
@@ -488,6 +495,7 @@ export default function CroquisApp() {
     });
   }, [placed, catalogById]);
 
+  /* ---------- resaltar selección ---------- */
   useEffect(() => {
     const t = threeRef.current;
     if (!t.selectionRing) return;
@@ -501,6 +509,7 @@ export default function CroquisApp() {
     t.selectionRing.visible = true;
   }, [selectedId, placed, catalogById]);
 
+  /* ---------- acciones ---------- */
   const addItem = useCallback((catalogId) => {
     const cat = catalogById.get(catalogId);
     const pos = findFreePosition(placed, catalogById, room.width, room.length, cat.w, cat.d);
@@ -529,6 +538,7 @@ export default function CroquisApp() {
   const selectedCat = selectedItem ? catalogById.get(selectedItem.catalogId) : null;
   const setRoomField = (field, value) => setRoom((r) => ({ ...r, [field]: value }));
 
+  /* ---------- guardar cotización en Supabase ---------- */
   const sendQuote = async () => {
     if (placed.length === 0 || !store) return;
     const { data: quote, error } = await supabase.from("quotes").insert({ store_id: store.id, total, status: "nueva" }).select().single();
@@ -553,8 +563,7 @@ export default function CroquisApp() {
   if (loadStatus === "error" || !store) {
     return (
       <div className="min-h-screen flex items-center justify-center text-center p-6" style={{ background: "#F5F2EC", fontFamily: "Inter, sans-serif" }}>
-                No se pudo cargar la tienda "{STORE_SLUG}".<br/>Detalle: {loadError}
-
+        No se pudo cargar la tienda "{STORE_SLUG}".
       </div>
     );
   }
@@ -722,4 +731,408 @@ export default function CroquisApp() {
       </div>
     </div>
   );
+}
+
+/* ==================================================================== */
+/* PANEL DE ADMINISTRACIÓN — con login real de Supabase                  */
+/* ==================================================================== */
+
+const FURNITURE_TYPES = [
+  { value: "sofa", label: "Sofá" },
+  { value: "armchair", label: "Sillón" },
+  { value: "table", label: "Mesa" },
+  { value: "chair", label: "Silla" },
+  { value: "bed", label: "Cama" },
+  { value: "closet", label: "Closet" },
+  { value: "nightstand", label: "Mesa de noche" },
+];
+
+const STATUS_META = {
+  nueva: { label: "Nueva", icon: CircleDot, color: "#B0472F" },
+  contactado: { label: "Contactado", icon: Clock, color: "#96602F" },
+  cerrada: { label: "Cerrada", icon: Check, color: "#3D6B4A" },
+};
+
+const emptyProductForm = { category_id: "", furniture_type: "sofa", name: "", width_m: "", depth_m: "", height_m: "", color_hex: "#6B4A3A", price: "", is_active: true };
+
+function AdminPanel() {
+  const [session, setSession] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [authError, setAuthError] = useState("");
+  const [signingIn, setSigningIn] = useState(false);
+
+  const [store, setStore] = useState(null);
+  const [categories, setCategories] = useState([]);
+  const [products, setProducts] = useState([]);
+  const [quotes, setQuotes] = useState([]);
+  const [quoteItemsByQuote, setQuoteItemsByQuote] = useState({});
+  const [dataLoading, setDataLoading] = useState(false);
+  const [dataError, setDataError] = useState("");
+
+  const [tab, setTab] = useState("catalogo");
+  const [editingId, setEditingId] = useState(null);
+  const [form, setForm] = useState(emptyProductForm);
+  const [showForm, setShowForm] = useState(false);
+  const [brandDraft, setBrandDraft] = useState(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => { setSession(data.session); setAuthLoading(false); });
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, sess) => setSession(sess));
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
+  const loadStoreData = useCallback(async (userId) => {
+    setDataLoading(true);
+    setDataError("");
+    const { data: adminRow, error: adminErr } = await supabase
+      .from("store_admins").select("store_id, role, stores(*)").eq("user_id", userId).single();
+    if (adminErr || !adminRow) { setDataError("Este usuario no está vinculado a ninguna tienda todavía."); setDataLoading(false); return; }
+    setStore(adminRow.stores);
+    setBrandDraft({ name: adminRow.stores.name, primary_color: adminRow.stores.primary_color, whatsapp_number: adminRow.stores.whatsapp_number || "" });
+
+    const { data: cats } = await supabase.from("categories").select("*").eq("store_id", adminRow.store_id).order("sort_order");
+    setCategories(cats || []);
+
+    const { data: prods } = await supabase.from("products").select("*").eq("store_id", adminRow.store_id).order("created_at");
+    setProducts(prods || []);
+
+    const { data: qs } = await supabase.from("quotes").select("*").eq("store_id", adminRow.store_id).order("created_at", { ascending: false });
+    setQuotes(qs || []);
+
+    if (qs && qs.length) {
+      const { data: items } = await supabase.from("quote_items").select("*, products(name)").in("quote_id", qs.map((q) => q.id));
+      const grouped = {};
+      (items || []).forEach((it) => { (grouped[it.quote_id] ||= []).push(it); });
+      setQuoteItemsByQuote(grouped);
+    }
+    setDataLoading(false);
+  }, []);
+
+  useEffect(() => {
+    if (session?.user?.id) loadStoreData(session.user.id);
+  }, [session, loadStoreData]);
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setSigningIn(true);
+    setAuthError("");
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) setAuthError(error.message);
+    setSigningIn(false);
+  };
+  const handleLogout = async () => { await supabase.auth.signOut(); setStore(null); setProducts([]); setCategories([]); setQuotes([]); };
+
+  const categoryNameById = useMemo(() => new Map(categories.map((c) => [c.id, c.name])), [categories]);
+
+  const startNew = () => { setForm({ ...emptyProductForm, category_id: categories[0]?.id || "" }); setEditingId(null); setShowForm(true); };
+  const startEdit = (p) => { setForm({ ...p }); setEditingId(p.id); setShowForm(true); };
+
+  const saveProduct = async () => {
+    if (!form.name || !form.width_m || !form.depth_m || !form.height_m || !form.price || !form.category_id) return;
+    const payload = {
+      store_id: store.id, category_id: form.category_id, name: form.name, furniture_type: form.furniture_type,
+      width_m: Number(form.width_m), depth_m: Number(form.depth_m), height_m: Number(form.height_m),
+      color_hex: form.color_hex, price: Number(form.price), is_active: form.is_active,
+    };
+    if (editingId) {
+      const { data, error } = await supabase.from("products").update(payload).eq("id", editingId).select().single();
+      if (!error) setProducts((p) => p.map((x) => (x.id === editingId ? data : x)));
+    } else {
+      const { data, error } = await supabase.from("products").insert(payload).select().single();
+      if (!error) setProducts((p) => [...p, data]);
+    }
+    setShowForm(false);
+  };
+  const removeProduct = async (id) => {
+    const { error } = await supabase.from("products").delete().eq("id", id);
+    if (!error) setProducts((p) => p.filter((x) => x.id !== id));
+  };
+  const toggleActive = async (p) => {
+    const { data, error } = await supabase.from("products").update({ is_active: !p.is_active }).eq("id", p.id).select().single();
+    if (!error) setProducts((prev) => prev.map((x) => (x.id === p.id ? data : x)));
+  };
+  const setQuoteStatus = async (id, status) => {
+    const { error } = await supabase.from("quotes").update({ status }).eq("id", id);
+    if (!error) setQuotes((qs) => qs.map((q) => (q.id === id ? { ...q, status } : q)));
+  };
+  const saveBrand = async () => {
+    const { data, error } = await supabase.from("stores").update(brandDraft).eq("id", store.id).select().single();
+    if (!error) setStore(data);
+  };
+
+  const activeCount = useMemo(() => products.filter((p) => p.is_active).length, [products]);
+  const newQuotesCount = useMemo(() => quotes.filter((q) => q.status === "nueva").length, [quotes]);
+  const brandColor = store?.primary_color || "#2C4A3E";
+
+  if (authLoading) {
+    return <div className="min-h-screen flex items-center justify-center" style={{ background: "#F5F2EC", fontFamily: "Inter, sans-serif" }}>Cargando…</div>;
+  }
+
+  if (!session) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6" style={{ background: "#F5F2EC", fontFamily: "Inter, sans-serif" }}>
+        <style>{`@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600&display=swap');`}</style>
+        <form onSubmit={handleLogin} className="w-full max-w-sm rounded-xl p-6" style={{ background: "#FCFAF6", border: "1px solid #DED7C7" }}>
+          <div className="w-10 h-10 rounded-md flex items-center justify-center mb-4" style={{ background: "#2C4A3E" }}>
+            <Store size={18} color="#fff" />
+          </div>
+          <h1 className="font-bold text-xl mb-1" style={{ fontFamily: "'Space Grotesk',sans-serif", color: "#211D18" }}>Panel de tienda</h1>
+          <p className="text-[13px] mb-5" style={{ color: "#7C948B" }}>Inicia sesión para administrar tu catálogo.</p>
+
+          <label className="text-[11px] block mb-1" style={{ color: "#7C948B" }}>Correo</label>
+          <div className="flex items-center gap-2 border rounded-lg px-3 py-2 mb-3" style={{ borderColor: "#DED7C7" }}>
+            <Mail size={14} color="#7C948B" />
+            <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="w-full text-sm outline-none" placeholder="tucorreo@ejemplo.com" />
+          </div>
+
+          <label className="text-[11px] block mb-1" style={{ color: "#7C948B" }}>Contraseña</label>
+          <div className="flex items-center gap-2 border rounded-lg px-3 py-2 mb-4" style={{ borderColor: "#DED7C7" }}>
+            <Lock size={14} color="#7C948B" />
+            <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className="w-full text-sm outline-none" placeholder="••••••••" />
+          </div>
+
+          {authError && <p className="text-[12px] mb-3" style={{ color: "#B0472F" }}>{authError}</p>}
+
+          <button type="submit" disabled={signingIn} className="w-full rounded-lg py-2.5 text-sm font-medium text-white disabled:opacity-50" style={{ background: "#2C4A3E" }}>
+            {signingIn ? "Entrando…" : "Iniciar sesión"}
+          </button>
+        </form>
+      </div>
+    );
+  }
+
+  if (dataLoading || !store) {
+    return (
+      <div className="min-h-screen flex items-center justify-center text-center p-6" style={{ background: "#F5F2EC", fontFamily: "Inter, sans-serif" }}>
+        {dataError ? (
+          <div>
+            <p className="mb-3" style={{ color: "#B0472F" }}>{dataError}</p>
+            <button onClick={handleLogout} className="text-sm underline" style={{ color: "#7C948B" }}>Cerrar sesión</button>
+          </div>
+        ) : "Cargando tu tienda…"}
+      </div>
+    );
+  }
+
+  return (
+    <div className="admin-root">
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap');
+        .admin-root{ --bg:#F5F2EC; --ink:#211D18; --brand:${brandColor}; --brand-light:#7C948B; --walnut:#96602F; --line:#DED7C7; --panel:#FCFAF6; --danger:#B0472F;
+          font-family:'Inter',sans-serif; color:var(--ink); background:var(--bg); min-height:100vh; display:flex; }
+        .disp{ font-family:'Space Grotesk',sans-serif; }
+        .mono{ font-family:'IBM Plex Mono',monospace; }
+        .navitem{ display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:8px; font-size:13.5px; cursor:pointer; color:#5C554A; }
+        .navitem:hover{ background:#00000008; }
+        .navitem.active{ background:var(--brand); color:#fff; }
+        .field label{ font-size:11px; color:var(--brand-light); display:block; margin-bottom:3px; }
+        .field input, .field select{ width:100%; border:1px solid var(--line); border-radius:6px; padding:7px 9px; font-size:13.5px; background:#fff; }
+        .btn-primary{ background:var(--brand); color:#fff; }
+        .cardline{ border:1px solid var(--line); background:var(--panel); }
+        .swatch{ width:24px; height:24px; border-radius:6px; cursor:pointer; border:2px solid transparent; }
+        .swatch.active{ border-color:var(--ink); }
+        table.plist{ width:100%; border-collapse:collapse; }
+        table.plist th{ text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--brand-light); padding:8px 10px; border-bottom:1px solid var(--line); }
+        table.plist td{ padding:9px 10px; border-bottom:1px solid var(--line); font-size:13px; vertical-align:middle; }
+        .badge{ font-family:'IBM Plex Mono',monospace; font-size:10px; padding:2px 8px; border-radius:999px; }
+      `}</style>
+
+      <aside className="w-56 flex-shrink-0 border-r flex flex-col p-4" style={{ borderColor: "var(--line)" }}>
+        <div className="flex items-center gap-2 mb-8">
+          <div className="w-8 h-8 rounded-md flex items-center justify-center disp font-bold text-white" style={{ background: "var(--brand)" }}>{store.name?.[0] || "T"}</div>
+          <div>
+            <div className="disp font-bold text-sm leading-none">{store.name}</div>
+            <span className="mono text-[9px]" style={{ color: "var(--brand-light)" }}>panel de tienda</span>
+          </div>
+        </div>
+        <nav className="flex flex-col gap-1">
+          <div className={`navitem ${tab === "catalogo" ? "active" : ""}`} onClick={() => setTab("catalogo")}>
+            <LayoutGrid size={16} /> Catálogo <span className="mono ml-auto text-[10px]" style={{ opacity: 0.75 }}>{activeCount}</span>
+          </div>
+          <div className={`navitem ${tab === "cotizaciones" ? "active" : ""}`} onClick={() => setTab("cotizaciones")}>
+            <MessageSquareText size={16} /> Cotizaciones
+            {newQuotesCount > 0 && <span className="mono ml-auto text-[10px] px-1.5 rounded-full" style={{ background: "var(--danger)", color: "#fff" }}>{newQuotesCount}</span>}
+          </div>
+          <div className={`navitem ${tab === "marca" ? "active" : ""}`} onClick={() => setTab("marca")}>
+            <Palette size={16} /> Marca de la tienda
+          </div>
+        </nav>
+        <div className="navitem mt-auto" style={{ color: "var(--danger)" }} onClick={handleLogout}>
+          <LogOut size={16} /> Cerrar sesión
+        </div>
+      </aside>
+
+      <main className="flex-1 p-6 max-w-[900px]">
+        {tab === "catalogo" && (
+          <div>
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <h2 className="disp font-bold text-xl">Catálogo</h2>
+                <p className="text-[12.5px]" style={{ color: "var(--brand-light)" }}>Esto es lo que ven tus clientes en el visualizador.</p>
+              </div>
+              <button onClick={startNew} className="btn-primary rounded-lg px-3.5 py-2 text-sm font-medium flex items-center gap-1.5">
+                <Plus size={15} /> Nuevo producto
+              </button>
+            </div>
+
+            {showForm && (
+              <div className="cardline rounded-xl p-4 mb-5">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="disp font-semibold text-sm">{editingId ? "Editar producto" : "Nuevo producto"}</h3>
+                  <button onClick={() => setShowForm(false)}><X size={16} /></button>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-3">
+                  <div className="field col-span-2 sm:col-span-3">
+                    <label>Nombre</label>
+                    <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Ej. Sofá Milano 3 puestos" />
+                  </div>
+                  <div className="field">
+                    <label>Categoría</label>
+                    <select value={form.category_id} onChange={(e) => setForm({ ...form, category_id: e.target.value })}>
+                      {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    </select>
+                  </div>
+                  <div className="field">
+                    <label>Tipo (para el 3D)</label>
+                    <select value={form.furniture_type} onChange={(e) => setForm({ ...form, furniture_type: e.target.value })}>
+                      {FURNITURE_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+                    </select>
+                  </div>
+                  <div className="field">
+                    <label>Precio (USD)</label>
+                    <input type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} placeholder="899" />
+                  </div>
+                  <div className="field">
+                    <label>Ancho (m)</label>
+                    <input type="number" step="0.01" value={form.width_m} onChange={(e) => setForm({ ...form, width_m: e.target.value })} placeholder="2.20" />
+                  </div>
+                  <div className="field">
+                    <label>Profundidad (m)</label>
+                    <input type="number" step="0.01" value={form.depth_m} onChange={(e) => setForm({ ...form, depth_m: e.target.value })} placeholder="0.95" />
+                  </div>
+                  <div className="field">
+                    <label>Alto (m)</label>
+                    <input type="number" step="0.01" value={form.height_m} onChange={(e) => setForm({ ...form, height_m: e.target.value })} placeholder="0.85" />
+                  </div>
+                </div>
+                <div className="mb-4">
+                  <label className="text-[11px] block mb-1.5" style={{ color: "var(--brand-light)" }}>Color</label>
+                  <div className="flex gap-1.5 items-center">
+                    <input type="color" value={form.color_hex} onChange={(e) => setForm({ ...form, color_hex: e.target.value })} className="w-8 h-8 rounded cursor-pointer border" style={{ borderColor: "var(--line)" }} />
+                    <span className="mono text-[12px]" style={{ color: "var(--brand-light)" }}>{form.color_hex}</span>
+                  </div>
+                </div>
+                <button onClick={saveProduct} className="btn-primary rounded-lg px-4 py-2 text-sm font-medium">
+                  {editingId ? "Guardar cambios" : "Agregar al catálogo"}
+                </button>
+              </div>
+            )}
+
+            <div className="cardline rounded-xl overflow-hidden">
+              <table className="plist">
+                <thead><tr><th>Producto</th><th>Categoría</th><th>Medidas</th><th>Precio</th><th>Estado</th><th></th></tr></thead>
+                <tbody>
+                  {products.map((p) => (
+                    <tr key={p.id}>
+                      <td className="flex items-center gap-2 py-2.5">
+                        <div className="w-6 h-6 rounded flex-shrink-0" style={{ background: p.color_hex }} />
+                        {p.name}
+                      </td>
+                      <td>{categoryNameById.get(p.category_id) || "—"}</td>
+                      <td className="mono text-[11.5px]">{p.width_m}×{p.depth_m}×{p.height_m} m</td>
+                      <td className="mono">${p.price}</td>
+                      <td>
+                        <button onClick={() => toggleActive(p)} className="badge" style={{ background: p.is_active ? "#3D6B4A22" : "#00000010", color: p.is_active ? "#3D6B4A" : "#8a8478" }}>
+                          {p.is_active ? "Visible" : "Oculto"}
+                        </button>
+                      </td>
+                      <td>
+                        <div className="flex gap-2">
+                          <button onClick={() => startEdit(p)}><Pencil size={14} color="var(--brand-light)" /></button>
+                          <button onClick={() => removeProduct(p.id)}><Trash2 size={14} color="var(--danger)" /></button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                  {products.length === 0 && <tr><td colSpan={6} className="text-center py-6 text-[12.5px]" style={{ color: "var(--brand-light)" }}>Aún no hay productos. Agrega el primero arriba.</td></tr>}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {tab === "cotizaciones" && (
+          <div>
+            <h2 className="disp font-bold text-xl mb-1">Cotizaciones</h2>
+            <p className="text-[12.5px] mb-5" style={{ color: "var(--brand-light)" }}>Lo que tus clientes arman en el visualizador y te envían.</p>
+            <div className="flex flex-col gap-3">
+              {quotes.map((q) => {
+                const meta = STATUS_META[q.status] || STATUS_META.nueva;
+                const Icon = meta.icon;
+                const items = quoteItemsByQuote[q.id] || [];
+                return (
+                  <div key={q.id} className="cardline rounded-xl p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <p className="mono text-[11px] flex items-center gap-1" style={{ color: "var(--brand-light)" }}>
+                        <Phone size={11} /> {new Date(q.created_at).toLocaleDateString()}
+                      </p>
+                      <span className="disp font-bold text-lg">${q.total}</span>
+                    </div>
+                    <p className="text-[12.5px] mb-3">{items.map((it) => it.products?.name).filter(Boolean).join(" · ") || "Sin detalle de piezas"}</p>
+                    <div className="flex items-center gap-2">
+                      <span className="badge flex items-center gap-1" style={{ background: meta.color + "1a", color: meta.color }}><Icon size={11} /> {meta.label}</span>
+                      <div className="flex gap-1.5 ml-auto">
+                        {Object.keys(STATUS_META).filter((s) => s !== q.status).map((s) => (
+                          <button key={s} onClick={() => setQuoteStatus(q.id, s)} className="mono text-[10.5px] px-2 py-1 rounded border" style={{ borderColor: "var(--line)", color: "var(--brand-light)" }}>
+                            Marcar {STATUS_META[s].label.toLowerCase()}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+              {quotes.length === 0 && <p className="text-[12.5px] text-center py-6" style={{ color: "var(--brand-light)" }}>Aún no has recibido cotizaciones.</p>}
+            </div>
+          </div>
+        )}
+
+        {tab === "marca" && brandDraft && (
+          <div>
+            <h2 className="disp font-bold text-xl mb-1">Marca de la tienda</h2>
+            <p className="text-[12.5px] mb-5" style={{ color: "var(--brand-light)" }}>Esto define cómo se ve tu visualizador para tus clientes.</p>
+            <div className="cardline rounded-xl p-4 max-w-md">
+              <div className="field mb-3">
+                <label>Nombre de la tienda</label>
+                <input value={brandDraft.name} onChange={(e) => setBrandDraft({ ...brandDraft, name: e.target.value })} />
+              </div>
+              <div className="field mb-3">
+                <label>WhatsApp (con código de país, sin +)</label>
+                <input value={brandDraft.whatsapp_number} onChange={(e) => setBrandDraft({ ...brandDraft, whatsapp_number: e.target.value })} placeholder="50760000000" />
+              </div>
+              <div className="mb-4">
+                <label className="text-[11px] block mb-1.5" style={{ color: "var(--brand-light)" }}>Color de marca</label>
+                <div className="flex gap-2">
+                  {["#2C4A3E", "#24424E", "#5B3A29", "#6B2E2E", "#3D3A5C", "#4A5A2C"].map((c) => (
+                    <button key={c} className={`swatch ${brandDraft.primary_color === c ? "active" : ""}`} style={{ background: c }} onClick={() => setBrandDraft({ ...brandDraft, primary_color: c })} />
+                  ))}
+                </div>
+              </div>
+              <button onClick={saveBrand} className="btn-primary rounded-lg px-4 py-2 text-sm font-medium">Guardar cambios</button>
+            </div>
+          </div>
+        )}
+      </main>
+    </div>
+  );
+}
+
+/* ==================================================================== */
+/* Enrutador simple: /admin muestra el panel, todo lo demás el visualizador */
+/* ==================================================================== */
+export default function App() {
+  const isAdmin = typeof window !== "undefined" && window.location.pathname.startsWith("/admin");
+  return isAdmin ? <AdminPanel /> : <CroquisApp />;
 }
