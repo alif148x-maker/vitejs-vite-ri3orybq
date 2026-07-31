@@ -555,10 +555,25 @@ function CroquisApp() {
     const lines = placed.map((p) => { const c = catalogById.get(p.catalogId); return `• ${c.name} — $${c.price}`; });
     return encodeURIComponent(`Hola ${store.name}, quiero cotizar este espacio diseñado en la app:\n\n${lines.join("\n")}\n\nTotal aprox: $${total.toLocaleString()}\nCuarto: ${room.width}×${room.length} m`);
   }, [placed, total, room.width, room.length, store, catalogById]);
-  const waLink = store ? `https://wa.me/${store.whatsapp_number}?text=${waMessage}` : "#";
+  // Temporal: mientras pruebas, las cotizaciones llegan a tu WhatsApp.
+  // Cuando conectes una mueblería real, cambia esto de vuelta a store.whatsapp_number.
+  const OWNER_WHATSAPP = "50769800375";
+  const waLink = store ? `https://wa.me/${OWNER_WHATSAPP}?text=${waMessage}` : "#";
 
   if (loadStatus === "cargando") {
-    return <div className="min-h-screen flex items-center justify-center" style={{ background: "#F5F2EC", fontFamily: "Inter, sans-serif" }}>Cargando catálogo…</div>;
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4" style={{ background: "#F5F2EC", fontFamily: "'Space Grotesk', Inter, sans-serif" }}>
+        <style>{`
+          @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&display=swap');
+          @keyframes spin { to { transform: rotate(360deg); } }
+          @keyframes pulse { 0%,100% { opacity: .55; } 50% { opacity: 1; } }
+        `}</style>
+        <div style={{ width: 44, height: 44, borderRadius: 10, background: "#2C4A3E", display: "flex", alignItems: "center", justifyContent: "center", animation: "pulse 1.6s ease-in-out infinite" }}>
+          <div style={{ width: 20, height: 20, border: "2.5px solid rgba(255,255,255,0.35)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+        </div>
+        <p style={{ color: "#96602F", fontSize: 13, letterSpacing: "0.02em" }}>Preparando tu espacio…</p>
+      </div>
+    );
   }
   if (loadStatus === "error" || !store) {
     return (
@@ -1132,7 +1147,64 @@ function AdminPanel() {
 /* ==================================================================== */
 /* Enrutador simple: /admin muestra el panel, todo lo demás el visualizador */
 /* ==================================================================== */
+function ResetPasswordScreen() {
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [status, setStatus] = useState("idle"); // idle | saving | done | error
+  const [error, setError] = useState("");
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (password.length < 6) { setError("La contraseña debe tener al menos 6 caracteres."); return; }
+    if (password !== confirm) { setError("Las contraseñas no coinciden."); return; }
+    setStatus("saving");
+    setError("");
+    const { error: err } = await supabase.auth.updateUser({ password });
+    if (err) { setError(err.message); setStatus("error"); return; }
+    setStatus("done");
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center p-6" style={{ background: "#F5F2EC", fontFamily: "Inter, sans-serif" }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600&display=swap');`}</style>
+      <div className="w-full max-w-sm rounded-xl p-6" style={{ background: "#FCFAF6", border: "1px solid #DED7C7" }}>
+        <div className="w-10 h-10 rounded-md flex items-center justify-center mb-4" style={{ background: "#2C4A3E" }}>
+          <Lock size={18} color="#fff" />
+        </div>
+        <h1 className="font-bold text-xl mb-1" style={{ fontFamily: "'Space Grotesk',sans-serif", color: "#211D18" }}>Nueva contraseña</h1>
+
+        {status === "done" ? (
+          <div>
+            <p className="text-[13px] mb-4" style={{ color: "#3D6B4A" }}>Listo, tu contraseña quedó actualizada.</p>
+            <a href="/admin" className="block text-center rounded-lg py-2.5 text-sm font-medium text-white" style={{ background: "#2C4A3E" }}>Ir a iniciar sesión</a>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit}>
+            <p className="text-[13px] mb-5" style={{ color: "#7C948B" }}>Escribe tu nueva contraseña para el panel.</p>
+            <label className="text-[11px] block mb-1" style={{ color: "#7C948B" }}>Nueva contraseña</label>
+            <div className="flex items-center gap-2 border rounded-lg px-3 py-2 mb-3" style={{ borderColor: "#DED7C7" }}>
+              <Lock size={14} color="#7C948B" />
+              <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className="w-full text-sm outline-none" placeholder="••••••••" />
+            </div>
+            <label className="text-[11px] block mb-1" style={{ color: "#7C948B" }}>Confirmar contraseña</label>
+            <div className="flex items-center gap-2 border rounded-lg px-3 py-2 mb-4" style={{ borderColor: "#DED7C7" }}>
+              <Lock size={14} color="#7C948B" />
+              <input type="password" required value={confirm} onChange={(e) => setConfirm(e.target.value)} className="w-full text-sm outline-none" placeholder="••••••••" />
+            </div>
+            {error && <p className="text-[12px] mb-3" style={{ color: "#B0472F" }}>{error}</p>}
+            <button type="submit" disabled={status === "saving"} className="w-full rounded-lg py-2.5 text-sm font-medium text-white disabled:opacity-50" style={{ background: "#2C4A3E" }}>
+              {status === "saving" ? "Guardando…" : "Guardar contraseña"}
+            </button>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function App() {
+  const isRecovery = typeof window !== "undefined" && window.location.hash.includes("type=recovery");
   const isAdmin = typeof window !== "undefined" && window.location.pathname.startsWith("/admin");
+  if (isRecovery) return <ResetPasswordScreen />;
   return isAdmin ? <AdminPanel /> : <CroquisApp />;
 }
