@@ -621,9 +621,14 @@ function CroquisApp() {
             <span className="mono text-[10px]" style={{ color: "var(--brand-light)" }}>visualizador de espacios</span>
           </div>
         </div>
-        <span className="mono text-[10px] px-2 py-1 rounded-full border" style={{ borderColor: "var(--line)", color: "var(--walnut)" }}>
-          CONECTADO
-        </span>
+        <div className="flex items-center gap-3">
+          <a href="/admin" className="mono text-[10px] underline" style={{ color: "var(--brand-light)" }}>
+            Acceso para tiendas
+          </a>
+          <span className="mono text-[10px] px-2 py-1 rounded-full border" style={{ borderColor: "var(--line)", color: "var(--walnut)" }}>
+            CONECTADO
+          </span>
+        </div>
       </header>
 
       <main className="flex-1 flex flex-col lg:flex-row gap-4 p-4 sm:p-6 max-w-[1400px] w-full mx-auto">
