@@ -280,6 +280,21 @@ function clampToRoom(x, z, w, d, roomW, roomL) {
   return { x: Math.min(halfW, Math.max(-halfW, x)), z: Math.min(halfL, Math.max(-halfL, z)) };
 }
 
+// "Imán" a las paredes: si arrastras un mueble cerca de una pared, se pega justo contra ella.
+function snapToWalls(x, z, w, d, rotY, roomW, roomL) {
+  const k = ((Math.round(rotY / (Math.PI / 2)) % 4) + 4) % 4;
+  const halfX = k % 2 === 0 ? w / 2 : d / 2;
+  const halfZ = k % 2 === 0 ? d / 2 : w / 2;
+  const margin = 0.015;
+  const snapDist = 0.28;
+  let nx = x, nz = z;
+  if (x - halfX < -roomW / 2 + snapDist) nx = -roomW / 2 + halfX + margin;
+  if (z - halfZ < -roomL / 2 + snapDist) nz = -roomL / 2 + halfZ + margin;
+  const halfWclamp = Math.max(roomW / 2 - halfX - 0.02, 0);
+  const halfLclamp = Math.max(roomL / 2 - halfZ - 0.02, 0);
+  return { x: Math.min(halfWclamp, Math.max(-halfWclamp, nx)), z: Math.min(halfLclamp, Math.max(-halfLclamp, nz)) };
+}
+
 /* ------------------------------------------------------------------ */
 /* Componente principal                                                */
 /* ------------------------------------------------------------------ */
@@ -301,7 +316,16 @@ function CroquisApp() {
   const threeRef = useRef({});
   const camState = useRef({ theta: 0.7, phi: 1.05, radius: 7, target: new THREE.Vector3(0, 0.8, 0) });
   const dragRef = useRef({ dragging: false, lastX: 0, lastY: 0, moved: 0 });
+  const furnitureDragRef = useRef(null);
+  const raycasterRef = useRef(new THREE.Raycaster());
+  const floorPlaneRef = useRef(new THREE.Plane(new THREE.Vector3(0, 1, 0), 0));
+  const placedRef = useRef([]);
+  const catalogByIdRef = useRef(new Map());
+  const roomRef = useRef({ width: 4, length: 2.8 });
   const catalogById = useMemo(() => new Map(catalog.map((c) => [c.id, c])), [catalog]);
+  useEffect(() => { placedRef.current = placed; }, [placed]);
+  useEffect(() => { catalogByIdRef.current = catalogById; }, [catalogById]);
+  useEffect(() => { roomRef.current = room; }, [room]);
 
   /* ---------- cargar datos reales de Supabase ---------- */
   useEffect(() => {
@@ -383,8 +407,45 @@ function CroquisApp() {
     loop();
 
     const dom = renderer.domElement;
-    const onDown = (e) => { dragRef.current = { dragging: true, lastX: e.clientX, lastY: e.clientY, moved: 0 }; };
+    const raycaster = raycasterRef.current;
+    const floorPlane = floorPlaneRef.current;
+    const dragPoint = new THREE.Vector3();
+    const getMouse = (e) => {
+      const rect = dom.getBoundingClientRect();
+      return new THREE.Vector2(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1);
+    };
+    const hitFurniture = (e) => {
+      raycaster.setFromCamera(getMouse(e), camera);
+      const hits = raycaster.intersectObjects(itemsGroup.children, true);
+      if (hits.length === 0) return null;
+      let obj = hits[0].object;
+      while (obj.parent && !obj.userData.itemId) obj = obj.parent;
+      return obj.userData.itemId || null;
+    };
+    const onDown = (e) => {
+      const id = hitFurniture(e);
+      if (id) {
+        furnitureDragRef.current = id;
+        setSelectedId(id);
+      } else {
+        furnitureDragRef.current = null;
+        dragRef.current = { dragging: true, lastX: e.clientX, lastY: e.clientY, moved: 0 };
+      }
+    };
     const onMove = (e) => {
+      if (furnitureDragRef.current) {
+        raycaster.setFromCamera(getMouse(e), camera);
+        if (raycaster.ray.intersectPlane(floorPlane, dragPoint)) {
+          const id = furnitureDragRef.current;
+          const item = placedRef.current.find((p) => p.id === id);
+          const cat = item ? catalogByIdRef.current.get(item.catalogId) : null;
+          if (item && cat) {
+            const { x, z } = snapToWalls(dragPoint.x, dragPoint.z, cat.w, cat.d, item.rotY, roomRef.current.width, roomRef.current.length);
+            setPlaced((prev) => prev.map((p) => (p.id === id ? { ...p, x, z } : p)));
+          }
+        }
+        return;
+      }
       if (!dragRef.current.dragging) return;
       const dx = e.clientX - dragRef.current.lastX;
       const dy = e.clientY - dragRef.current.lastY;
@@ -395,22 +456,12 @@ function CroquisApp() {
       camState.current.phi = Math.min(Math.PI / 2 - 0.05, Math.max(0.25, camState.current.phi - dy * 0.006));
     };
     const onUp = (e) => {
+      if (furnitureDragRef.current) { furnitureDragRef.current = null; return; }
       if (dragRef.current.dragging && dragRef.current.moved < 6) doRaycastSelect(e);
       dragRef.current.dragging = false;
     };
     const onWheel = (e) => { e.preventDefault(); camState.current.radius = Math.min(16, Math.max(2, camState.current.radius + e.deltaY * 0.003)); };
-    const doRaycastSelect = (e) => {
-      const rect = dom.getBoundingClientRect();
-      const mouse = new THREE.Vector2(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1);
-      const raycaster = new THREE.Raycaster();
-      raycaster.setFromCamera(mouse, camera);
-      const hits = raycaster.intersectObjects(itemsGroup.children, true);
-      if (hits.length > 0) {
-        let obj = hits[0].object;
-        while (obj.parent && !obj.userData.itemId) obj = obj.parent;
-        setSelectedId(obj.userData.itemId || null);
-      } else setSelectedId(null);
-    };
+    const doRaycastSelect = (e) => { setSelectedId(hitFurniture(e)); };
 
     dom.addEventListener("pointerdown", onDown);
     window.addEventListener("pointermove", onMove);
