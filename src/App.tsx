@@ -229,6 +229,46 @@ function buildFurniture(type, w, d, h, color) {
       g.add(body, drawer, handle, top, buildTaperedLegs(w, d, legH, 0.02, 0.013, 0.03));
       break;
     }
+    case "window": {
+      const frameMat = new THREE.MeshStandardMaterial({ color: "#FFFFFF", roughness: 0.5 });
+      const frame = new THREE.Mesh(new THREE.BoxGeometry(w, h, 0.06), frameMat);
+      g.add(frame);
+      const glass = new THREE.Mesh(
+        new THREE.BoxGeometry(w * 0.86, h * 0.8, 0.015),
+        new THREE.MeshStandardMaterial({ color: "#AFC9D6", roughness: 0.1, metalness: 0.2, transparent: true, opacity: 0.55 })
+      );
+      glass.position.z = 0.025;
+      g.add(glass);
+      const mullionV = new THREE.Mesh(new THREE.BoxGeometry(0.03, h * 0.82, 0.03), frameMat);
+      mullionV.position.z = 0.03;
+      const mullionH = new THREE.Mesh(new THREE.BoxGeometry(w * 0.86, 0.03, 0.03), frameMat);
+      mullionH.position.z = 0.03;
+      g.add(mullionV, mullionH);
+      break;
+    }
+    case "tv": {
+      const bezelMat = new THREE.MeshStandardMaterial({ color: "#111111", roughness: 0.3, metalness: 0.4 });
+      const bezel = new THREE.Mesh(new THREE.BoxGeometry(w, h, 0.04), bezelMat);
+      g.add(bezel);
+      const screen = new THREE.Mesh(
+        new THREE.BoxGeometry(w * 0.95, h * 0.92, 0.01),
+        new THREE.MeshStandardMaterial({ color: "#2A3238", roughness: 0.2, metalness: 0.15 })
+      );
+      screen.position.z = 0.025;
+      g.add(screen);
+      const mount = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.12, 0.08), new THREE.MeshStandardMaterial({ color: "#2B2420", roughness: 0.6 }));
+      mount.position.z = -0.05;
+      g.add(mount);
+      break;
+    }
+    case "painting": {
+      const frame = new THREE.Mesh(new THREE.BoxGeometry(w, h, 0.035), new THREE.MeshStandardMaterial({ color: LEG_COLOR, roughness: 0.55 }));
+      g.add(frame);
+      const canvas = new THREE.Mesh(new THREE.BoxGeometry(w * 0.88, h * 0.85, 0.01), new THREE.MeshStandardMaterial({ color, roughness: 0.9 }));
+      canvas.position.z = 0.02;
+      g.add(canvas);
+      break;
+    }
     default: {
       const bodyM = box(w, h, d, color);
       bodyM.position.y = h / 2;
@@ -237,6 +277,21 @@ function buildFurniture(type, w, d, h, color) {
   }
   g.traverse((o) => { if (o.isMesh) { o.castShadow = false; o.receiveShadow = false; } });
   return g;
+}
+
+const WALL_ELEVATION = { window: 1.0, tv: 1.15, painting: 1.5 };
+const isWallType = (type) => type === "window" || type === "tv" || type === "painting";
+
+function findFreeWallX(existingWallItems, roomWidth, w) {
+  const half = Math.max(roomWidth / 2 - w / 2 - 0.1, 0);
+  for (let x = -half; x <= half + 0.001; x += 0.4) {
+    let ok = true;
+    for (const e of existingWallItems) {
+      if (Math.abs(x - e.x) < w / 2 + e.w / 2 + 0.1) { ok = false; break; }
+    }
+    if (ok) return x;
+  }
+  return 0;
 }
 
 function createTextSprite(text, color, fontSize = 46) {
@@ -450,12 +505,19 @@ function CroquisApp() {
     };
     const onMove = (e) => {
       if (furnitureDragRef.current) {
-        raycaster.setFromCamera(getMouse(e), camera);
-        if (raycaster.ray.intersectPlane(floorPlane, dragPoint)) {
-          const id = furnitureDragRef.current;
-          const item = placedRef.current.find((p) => p.id === id);
-          const cat = item ? catalogByIdRef.current.get(item.catalogId) : null;
-          if (item && cat) {
+        const id = furnitureDragRef.current;
+        const item = placedRef.current.find((p) => p.id === id);
+        const cat = item ? catalogByIdRef.current.get(item.catalogId) : null;
+        if (item && cat) {
+          raycaster.setFromCamera(getMouse(e), camera);
+          if (isWallType(cat.type)) {
+            const wallPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), roomRef.current.length / 2);
+            if (raycaster.ray.intersectPlane(wallPlane, dragPoint)) {
+              const halfW = Math.max(roomRef.current.width / 2 - cat.w / 2 - 0.05, 0);
+              const x = Math.min(halfW, Math.max(-halfW, dragPoint.x));
+              setPlaced((prev) => prev.map((p) => (p.id === id ? { ...p, x } : p)));
+            }
+          } else if (raycaster.ray.intersectPlane(floorPlane, dragPoint)) {
             const { x, z } = snapToWalls(dragPoint.x, dragPoint.z, cat.w, cat.d, item.rotY, roomRef.current.width, roomRef.current.length);
             setPlaced((prev) => prev.map((p) => (p.id === id ? { ...p, x, z } : p)));
           }
@@ -557,10 +619,15 @@ function CroquisApp() {
         meshes.set(p.id, mesh);
         t.itemsGroup.add(mesh);
       }
-      mesh.position.set(p.x, 0, p.z);
-      mesh.rotation.y = p.rotY;
+      if (isWallType(cat.type)) {
+        mesh.position.set(p.x, WALL_ELEVATION[cat.type] || 1.2, -room.length / 2 + 0.03);
+        mesh.rotation.y = 0;
+      } else {
+        mesh.position.set(p.x, 0, p.z);
+        mesh.rotation.y = p.rotY;
+      }
     });
-  }, [placed, catalogById]);
+  }, [placed, catalogById, room.length]);
 
   /* ---------- resaltar selección ---------- */
   useEffect(() => {
@@ -584,9 +651,17 @@ function CroquisApp() {
   /* ---------- acciones ---------- */
   const addItem = useCallback((catalogId) => {
     const cat = catalogById.get(catalogId);
-    const pos = findFreePosition(placed, catalogById, room.width, room.length, cat.w, cat.d);
     const id = `${catalogId}-${Date.now()}`;
-    setPlaced((prev) => [...prev, { id, catalogId, x: pos.x, z: pos.z, rotY: 0 }]);
+    if (isWallType(cat.type)) {
+      const existingWall = placed
+        .filter((p) => isWallType(catalogById.get(p.catalogId)?.type))
+        .map((p) => ({ x: p.x, w: catalogById.get(p.catalogId).w }));
+      const x = findFreeWallX(existingWall, room.width, cat.w);
+      setPlaced((prev) => [...prev, { id, catalogId, x, z: -room.length / 2, rotY: 0 }]);
+    } else {
+      const pos = findFreePosition(placed, catalogById, room.width, room.length, cat.w, cat.d);
+      setPlaced((prev) => [...prev, { id, catalogId, x: pos.x, z: pos.z, rotY: 0 }]);
+    }
     setSelectedId(id);
   }, [placed, catalogById, room.width, room.length]);
 
@@ -837,6 +912,9 @@ const FURNITURE_TYPES = [
   { value: "bed", label: "Cama" },
   { value: "closet", label: "Closet" },
   { value: "nightstand", label: "Mesa de noche" },
+  { value: "window", label: "Ventana (de pared)" },
+  { value: "tv", label: "TV (de pared)" },
+  { value: "painting", label: "Cuadro (de pared)" },
 ];
 
 const STATUS_META = {
