@@ -13,18 +13,32 @@ const STORE_SLUG = "mueble-roble";
 
 const WALL_COLORS = [
   { name: "Blanco cálido", hex: "#F5F2EC" },
+  { name: "Marfil", hex: "#EDE6D6" },
   { name: "Gris piedra", hex: "#C9C6BC" },
+  { name: "Gris perla", hex: "#DAD7D0" },
   { name: "Azul pizarra", hex: "#3E5560" },
+  { name: "Azul niebla", hex: "#8FA3AC" },
   { name: "Verde salvia", hex: "#7C8C74" },
+  { name: "Verde oliva", hex: "#5C6A44" },
   { name: "Terracota", hex: "#B06B47" },
+  { name: "Arena rosa", hex: "#D9B7A3" },
+  { name: "Mostaza suave", hex: "#C9A24B" },
+  { name: "Grafito", hex: "#4A4640" },
 ];
 
 const FLOOR_COLORS = [
   { name: "Roble claro", hex: "#C9A66B" },
+  { name: "Roble miel", hex: "#B98B52" },
   { name: "Nogal oscuro", hex: "#5B4030" },
+  { name: "Nogal rojizo", hex: "#7A3E2E" },
+  { name: "Pino natural", hex: "#DCC28E" },
   { name: "Cemento pulido", hex: "#B7B4AC" },
+  { name: "Concreto oscuro", hex: "#8A867E" },
   { name: "Blanco piso", hex: "#EDEAE2" },
   { name: "Porcelanato gris", hex: "#8C8C86" },
+  { name: "Mármol claro", hex: "#DCD6CC" },
+  { name: "Terracota piso", hex: "#A85C3F" },
+  { name: "Ébano", hex: "#2E241D" },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -371,11 +385,13 @@ function CroquisApp() {
 
     const roomGroup = new THREE.Group();
     const itemsGroup = new THREE.Group();
-    const selectionRing = new THREE.Mesh(
-      new THREE.RingGeometry(0.01, 0.02, 32),
-      new THREE.MeshBasicMaterial({ color: store.primary_color, side: THREE.DoubleSide, transparent: true, opacity: 0.9 })
+    const selectionRing = new THREE.LineLoop(
+      new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(-0.5, 0, -0.5), new THREE.Vector3(0.5, 0, -0.5),
+        new THREE.Vector3(0.5, 0, 0.5), new THREE.Vector3(-0.5, 0, 0.5),
+      ]),
+      new THREE.LineBasicMaterial({ color: store.primary_color, transparent: true, opacity: 0.95, linewidth: 2 })
     );
-    selectionRing.rotation.x = -Math.PI / 2;
     selectionRing.visible = false;
     scene.add(roomGroup, itemsGroup, selectionRing);
 
@@ -553,10 +569,15 @@ function CroquisApp() {
     const p = placed.find((i) => i.id === selectedId);
     if (!p) { t.selectionRing.visible = false; return; }
     const cat = catalogById.get(p.catalogId);
-    const r = Math.max(cat.w, cat.d) / 2 + 0.1;
+    const hw = cat.w / 2 + 0.03;
+    const hd = cat.d / 2 + 0.03;
     t.selectionRing.geometry.dispose();
-    t.selectionRing.geometry = new THREE.RingGeometry(r - 0.02, r, 40);
-    t.selectionRing.position.set(p.x, 0.015, p.z);
+    t.selectionRing.geometry = new THREE.BufferGeometry().setFromPoints([
+      new THREE.Vector3(-hw, 0, -hd), new THREE.Vector3(hw, 0, -hd),
+      new THREE.Vector3(hw, 0, hd), new THREE.Vector3(-hw, 0, hd),
+    ]);
+    t.selectionRing.position.set(p.x, 0.02, p.z);
+    t.selectionRing.rotation.y = p.rotY;
     t.selectionRing.visible = true;
   }, [selectedId, placed, catalogById]);
 
