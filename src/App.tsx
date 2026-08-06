@@ -27,18 +27,18 @@ const WALL_COLORS = [
 ];
 
 const FLOOR_COLORS = [
-  { name: "Roble claro", hex: "#C9A66B" },
-  { name: "Roble miel", hex: "#B98B52" },
-  { name: "Nogal oscuro", hex: "#5B4030" },
-  { name: "Nogal rojizo", hex: "#7A3E2E" },
-  { name: "Pino natural", hex: "#DCC28E" },
-  { name: "Cemento pulido", hex: "#B7B4AC" },
-  { name: "Concreto oscuro", hex: "#8A867E" },
-  { name: "Blanco piso", hex: "#EDEAE2" },
-  { name: "Porcelanato gris", hex: "#8C8C86" },
-  { name: "Mármol claro", hex: "#DCD6CC" },
-  { name: "Terracota piso", hex: "#A85C3F" },
-  { name: "Ébano", hex: "#2E241D" },
+  { name: "Roble claro", hex: "#C9A66B", finish: "wood" },
+  { name: "Roble miel", hex: "#B98B52", finish: "wood" },
+  { name: "Nogal oscuro", hex: "#5B4030", finish: "wood" },
+  { name: "Nogal rojizo", hex: "#7A3E2E", finish: "wood" },
+  { name: "Pino natural", hex: "#DCC28E", finish: "wood" },
+  { name: "Cemento pulido", hex: "#B7B4AC", finish: "concrete" },
+  { name: "Concreto oscuro", hex: "#8A867E", finish: "concrete" },
+  { name: "Blanco piso", hex: "#EDEAE2", finish: "tile" },
+  { name: "Porcelanato gris", hex: "#8C8C86", finish: "tile" },
+  { name: "Mármol claro", hex: "#DCD6CC", finish: "marble" },
+  { name: "Terracota piso", hex: "#A85C3F", finish: "tile" },
+  { name: "Ébano", hex: "#2E241D", finish: "wood" },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -294,6 +294,74 @@ function findFreeWallX(existingWallItems, roomWidth, w) {
   return 0;
 }
 
+// Genera una textura real (madera/mosaico/concreto/mármol/yeso) pintándola con código, sin depender de fotos externas.
+function createSurfaceTexture(baseHex, kind) {
+  const size = 256;
+  const canvas = document.createElement("canvas");
+  canvas.width = size; canvas.height = size;
+  const ctx = canvas.getContext("2d");
+  const base = new THREE.Color(baseHex);
+  const darker = base.clone().multiplyScalar(0.84);
+  const lighter = base.clone().multiplyScalar(1.14);
+  const toCss = (c) => `#${c.getHexString()}`;
+  ctx.fillStyle = toCss(base);
+  ctx.fillRect(0, 0, size, size);
+
+  if (kind === "wood") {
+    for (let i = 0; i < 46; i++) {
+      const y = Math.random() * size;
+      ctx.strokeStyle = Math.random() > 0.5 ? toCss(darker) : toCss(lighter);
+      ctx.globalAlpha = 0.05 + Math.random() * 0.09;
+      ctx.lineWidth = 1 + Math.random() * 1.4;
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.bezierCurveTo(size * 0.3, y + (Math.random() * 6 - 3), size * 0.7, y + (Math.random() * 6 - 3), size, y);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 0.22;
+    ctx.strokeStyle = toCss(darker);
+    ctx.lineWidth = 2;
+    for (let x = 0; x <= size; x += size / 4) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, size); ctx.stroke(); }
+  } else if (kind === "tile") {
+    ctx.globalAlpha = 0.32;
+    ctx.strokeStyle = toCss(darker);
+    ctx.lineWidth = 3;
+    const grid = 4;
+    for (let i = 0; i <= grid; i++) {
+      const p = (size / grid) * i;
+      ctx.beginPath(); ctx.moveTo(p, 0); ctx.lineTo(p, size); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, p); ctx.lineTo(size, p); ctx.stroke();
+    }
+  } else if (kind === "concrete" || kind === "marble") {
+    for (let i = 0; i < 900; i++) {
+      ctx.fillStyle = Math.random() > 0.5 ? toCss(darker) : toCss(lighter);
+      ctx.globalAlpha = 0.035 + Math.random() * 0.05;
+      ctx.fillRect(Math.random() * size, Math.random() * size, 1.5, 1.5);
+    }
+    if (kind === "marble") {
+      ctx.globalAlpha = 0.22;
+      ctx.strokeStyle = toCss(lighter);
+      for (let i = 0; i < 5; i++) {
+        let x = Math.random() * size, y = 0;
+        ctx.beginPath(); ctx.moveTo(x, y);
+        for (let s = 0; s < 6; s++) { x += Math.random() * 60 - 30; y += size / 6; ctx.lineTo(x, y); }
+        ctx.lineWidth = 1 + Math.random();
+        ctx.stroke();
+      }
+    }
+  } else {
+    for (let i = 0; i < 1400; i++) {
+      ctx.fillStyle = Math.random() > 0.5 ? toCss(darker) : toCss(lighter);
+      ctx.globalAlpha = 0.02 + Math.random() * 0.03;
+      ctx.fillRect(Math.random() * size, Math.random() * size, 1, 1);
+    }
+  }
+  ctx.globalAlpha = 1;
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  return tex;
+}
+
 function createTextSprite(text, color, fontSize = 46) {
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
@@ -349,8 +417,22 @@ function clampToRoom(x, z, w, d, roomW, roomL) {
   return { x: Math.min(halfW, Math.max(-halfW, x)), z: Math.min(halfL, Math.max(-halfL, z)) };
 }
 
+// Igual que clampToRoom, pero si el cuarto es en L, permite que el mueble entre a la extensión.
+function clampToRoomShape(x, z, w, d, roomW, roomL, isL, extW, extD) {
+  const footprint = Math.max(w, d);
+  const halfW = Math.max(roomW / 2 - footprint / 2 - 0.05, 0);
+  const halfLBase = Math.max(roomL / 2 - footprint / 2 - 0.05, 0);
+  const cx = Math.min(halfW, Math.max(-halfW, x));
+  const stepX = roomW / 2 - extW;
+  const inExt = isL && extW > 0.2 && extD > 0.2 && cx + footprint / 2 > stepX;
+  const extraBack = inExt ? Math.max(extD - 0.05, 0) : 0;
+  const zMin = -halfLBase - extraBack;
+  const cz = Math.min(halfLBase, Math.max(zMin, z));
+  return { x: cx, z: cz };
+}
+
 // "Imán" a las paredes: si arrastras un mueble cerca de una pared, se pega justo contra ella.
-function snapToWalls(x, z, w, d, rotY, roomW, roomL) {
+function snapToWalls(x, z, w, d, rotY, roomW, roomL, isL, extW, extD) {
   const k = ((Math.round(rotY / (Math.PI / 2)) % 4) + 4) % 4;
   const halfX = k % 2 === 0 ? w / 2 : d / 2;
   const halfZ = k % 2 === 0 ? d / 2 : w / 2;
@@ -358,10 +440,14 @@ function snapToWalls(x, z, w, d, rotY, roomW, roomL) {
   const snapDist = 0.28;
   let nx = x, nz = z;
   if (x - halfX < -roomW / 2 + snapDist) nx = -roomW / 2 + halfX + margin;
-  if (z - halfZ < -roomL / 2 + snapDist) nz = -roomL / 2 + halfZ + margin;
+  const stepX = roomW / 2 - (extW || 0);
+  const inExt = isL && extW > 0.2 && extD > 0.2 && nx + halfX > stepX;
+  const backWallZ = inExt ? -(roomL / 2 + extD) : -roomL / 2;
+  if (z - halfZ < backWallZ + snapDist) nz = backWallZ + halfZ + margin;
   const halfWclamp = Math.max(roomW / 2 - halfX - 0.02, 0);
+  const zMinClamp = inExt ? backWallZ + halfZ + 0.02 : -(Math.max(roomL / 2 - halfZ - 0.02, 0));
   const halfLclamp = Math.max(roomL / 2 - halfZ - 0.02, 0);
-  return { x: Math.min(halfWclamp, Math.max(-halfWclamp, nx)), z: Math.min(halfLclamp, Math.max(-halfLclamp, nz)) };
+  return { x: Math.min(halfWclamp, Math.max(-halfWclamp, nx)), z: Math.min(halfLclamp, Math.max(zMinClamp, nz)) };
 }
 
 /* ------------------------------------------------------------------ */
@@ -374,8 +460,8 @@ function CroquisApp() {
   const [categoryNames, setCategoryNames] = useState([]);
   const [loadStatus, setLoadStatus] = useState("cargando");
 
-  const [room, setRoom] = useState({ width: 4, length: 2.8, height: 2.6, wallColor: "#F5F2EC", floorColor: "#C9A66B" });
-  const [roomDraft, setRoomDraft] = useState({ width: "4", length: "2.8", height: "2.6" });
+  const [room, setRoom] = useState({ width: 4, length: 2.8, height: 2.6, wallColor: "#F5F2EC", floorColor: "#C9A66B", shape: "rect", extWidth: 1.5, extDepth: 1.5 });
+  const [roomDraft, setRoomDraft] = useState({ width: "4", length: "2.8", height: "2.6", extWidth: "1.5", extDepth: "1.5" });
   const [placed, setPlaced] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
   const [catTab, setCatTab] = useState("Todas");
@@ -520,10 +606,14 @@ function CroquisApp() {
               const half = Math.max(roomSpan / 2 - cat.w / 2 - 0.05, 0);
               const raw = isSide ? dragPoint.z : dragPoint.x;
               const x = Math.min(half, Math.max(-half, raw));
-              setPlaced((prev) => prev.map((p) => (p.id === id ? { ...p, x } : p)));
+              const minY = cat.h / 2 + 0.1;
+              const maxY = roomRef.current.height - cat.h / 2 - 0.1;
+              const elevY = Math.min(maxY, Math.max(minY, dragPoint.y));
+              setPlaced((prev) => prev.map((p) => (p.id === id ? { ...p, x, elevY } : p)));
             }
           } else if (raycaster.ray.intersectPlane(floorPlane, dragPoint)) {
-            const { x, z } = snapToWalls(dragPoint.x, dragPoint.z, cat.w, cat.d, item.rotY, roomRef.current.width, roomRef.current.length);
+            const r = roomRef.current;
+            const { x, z } = snapToWalls(dragPoint.x, dragPoint.z, cat.w, cat.d, item.rotY, r.width, r.length, r.shape === "L", r.extWidth, r.extDepth);
             setPlaced((prev) => prev.map((p) => (p.id === id ? { ...p, x, z } : p)));
           }
         }
@@ -567,24 +657,59 @@ function CroquisApp() {
     const t = threeRef.current;
     if (!t.roomGroup || !store) return;
     t.roomGroup.clear();
-    const { width, length, height, wallColor, floorColor } = room;
+    const { width, length, height, wallColor, floorColor, shape, extWidth, extDepth } = room;
+    const isL = shape === "L";
+    const extW = isL ? Math.min(extWidth, width - 0.6) : 0;
+    const extD = isL ? Math.max(extDepth, 0) : 0;
+    const stepX = width / 2 - extW;
 
-    const floor = new THREE.Mesh(new THREE.PlaneGeometry(width, length), new THREE.MeshStandardMaterial({ color: floorColor, roughness: 0.85 }));
+    const floorSwatch = FLOOR_COLORS.find((c) => c.hex === floorColor);
+    const floorFinish = floorSwatch?.finish || "wood";
+    const makeFloorMat = (rw, rl) => {
+      const tex = createSurfaceTexture(floorColor, floorFinish);
+      tex.repeat.set(Math.max(rw, 1), Math.max(rl, 1));
+      return new THREE.MeshStandardMaterial({ map: tex, roughness: 0.85 });
+    };
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(width, length), makeFloorMat(width, length));
     floor.rotation.x = -Math.PI / 2;
     t.roomGroup.add(floor);
 
-    const grid = new THREE.GridHelper(Math.max(width, length) + 1, Math.round((Math.max(width, length) + 1) * 2), "#00000022", "#00000015");
+    if (isL && extW > 0.2 && extD > 0.2) {
+      const extFloor = new THREE.Mesh(new THREE.PlaneGeometry(extW, extD), makeFloorMat(extW, extD));
+      extFloor.rotation.x = -Math.PI / 2;
+      extFloor.position.set(width / 2 - extW / 2, 0, -(length / 2 + extD / 2));
+      t.roomGroup.add(extFloor);
+    }
+
+    const grid = new THREE.GridHelper(Math.max(width, length + extD) + 1, Math.round((Math.max(width, length + extD) + 1) * 2), "#00000022", "#00000015");
     grid.position.y = 0.005;
     t.roomGroup.add(grid);
 
-    const wallMat = new THREE.MeshStandardMaterial({ color: wallColor, roughness: 1, side: THREE.DoubleSide });
-    const backWall = new THREE.Mesh(new THREE.PlaneGeometry(width, height), wallMat);
-    backWall.position.set(0, height / 2, -length / 2);
-    const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(length, height), wallMat.clone());
-    leftWall.material.color = new THREE.Color(wallColor).multiplyScalar(0.9);
+    const makeWallMat = (span) => {
+      const tex = createSurfaceTexture(wallColor, "plaster");
+      tex.repeat.set(Math.max(span, 1), Math.max(height, 1));
+      return new THREE.MeshStandardMaterial({ map: tex, roughness: 1, side: THREE.DoubleSide });
+    };
+
+    if (isL && extW > 0.2 && extD > 0.2) {
+      const backMainW = width - extW;
+      const backMain = new THREE.Mesh(new THREE.PlaneGeometry(backMainW, height), makeWallMat(backMainW));
+      backMain.position.set(-extW / 2, height / 2, -length / 2);
+      const backExt = new THREE.Mesh(new THREE.PlaneGeometry(extW, height), makeWallMat(extW));
+      backExt.position.set(width / 2 - extW / 2, height / 2, -(length / 2 + extD));
+      const stepWall = new THREE.Mesh(new THREE.PlaneGeometry(extD, height), makeWallMat(extD));
+      stepWall.rotation.y = Math.PI / 2;
+      stepWall.position.set(stepX, height / 2, -(length / 2 + extD / 2));
+      t.roomGroup.add(backMain, backExt, stepWall);
+    } else {
+      const backWall = new THREE.Mesh(new THREE.PlaneGeometry(width, height), makeWallMat(width));
+      backWall.position.set(0, height / 2, -length / 2);
+      t.roomGroup.add(backWall);
+    }
+    const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(length, height), makeWallMat(length));
     leftWall.rotation.y = Math.PI / 2;
     leftWall.position.set(-width / 2, height / 2, 0);
-    t.roomGroup.add(backWall, leftWall);
+    t.roomGroup.add(leftWall);
 
     const zFront = length / 2 + 0.35;
     t.roomGroup.add(dashedLine([new THREE.Vector3(-width / 2, 0.01, zFront), new THREE.Vector3(width / 2, 0.01, zFront)], store.primary_color));
@@ -598,15 +723,16 @@ function CroquisApp() {
     lLabel.position.set(xSide + 0.55, 0.35, 0);
     t.roomGroup.add(lLabel);
 
-    camState.current.target.set(0, height * 0.35, 0);
-    camState.current.radius = Math.max(width, length) * 1.35 + 2.2;
+    camState.current.target.set(isL ? width * 0.12 : 0, height * 0.35, isL ? -extD * 0.3 : 0);
+    camState.current.radius = Math.max(width, length + extD) * 1.35 + 2.2;
 
     setPlaced((prev) => prev.map((p) => {
       const cat = catalogById.get(p.catalogId);
-      const { x, z } = clampToRoom(p.x, p.z, cat.w, cat.d, width, length);
+      if (isWallType(cat.type)) return p;
+      const { x, z } = clampToRoomShape(p.x, p.z, cat.w, cat.d, width, length, isL, extW, extD);
       return { ...p, x, z };
     }));
-  }, [room.width, room.length, room.height, room.wallColor, room.floorColor, store]);
+  }, [room.width, room.length, room.height, room.wallColor, room.floorColor, room.shape, room.extWidth, room.extDepth, store]);
 
   /* ---------- sincronizar muebles colocados ---------- */
   useEffect(() => {
@@ -830,6 +956,44 @@ function CroquisApp() {
                 </label>
               ))}
             </div>
+
+            <div className="mb-3">
+              <div className="text-[11px] mb-1.5" style={{ color: "var(--brand-light)" }}>Forma del cuarto</div>
+              <div className="flex gap-1.5">
+                <button
+                  onClick={() => setRoomField("shape", "rect")}
+                  className="flex-1 text-[11px] py-1.5 rounded border"
+                  style={{ borderColor: "var(--line)", background: room.shape !== "L" ? "var(--brand)" : "transparent", color: room.shape !== "L" ? "#fff" : "var(--ink)" }}
+                >Rectangular</button>
+                <button
+                  onClick={() => setRoomField("shape", "L")}
+                  className="flex-1 text-[11px] py-1.5 rounded border"
+                  style={{ borderColor: "var(--line)", background: room.shape === "L" ? "var(--brand)" : "transparent", color: room.shape === "L" ? "#fff" : "var(--ink)" }}
+                >En L</button>
+              </div>
+            </div>
+
+            {room.shape === "L" && (
+              <div className="grid grid-cols-2 gap-2 mb-3">
+                {[{ key: "extWidth", label: "Ancho extensión" }, { key: "extDepth", label: "Fondo extensión" }].map((f) => (
+                  <label key={f.key} className="text-[11px] flex flex-col gap-1">
+                    <span style={{ color: "var(--brand-light)" }}>{f.label} (m)</span>
+                    <input
+                      type="number" step="0.1" inputMode="decimal"
+                      value={roomDraft[f.key]}
+                      onChange={(e) => setRoomDraft((d) => ({ ...d, [f.key]: e.target.value }))}
+                      onBlur={(e) => {
+                        const n = Number(e.target.value);
+                        const clamped = Number.isFinite(n) ? Math.min(4, Math.max(0.8, n)) : room[f.key];
+                        setRoomField(f.key, clamped);
+                        setRoomDraft((d) => ({ ...d, [f.key]: String(clamped) }));
+                      }}
+                      className="mono w-full border rounded px-1.5 py-1 text-sm" style={{ borderColor: "var(--line)" }}
+                    />
+                  </label>
+                ))}
+              </div>
+            )}
             <div className="mb-3">
               <div className="text-[11px] mb-1.5 flex items-center gap-1" style={{ color: "var(--brand-light)" }}><Palette size={12} /> Color de pared</div>
               <div className="flex gap-1.5 flex-wrap">{WALL_COLORS.map((c) => <button key={c.hex} title={c.name} className={`swatch ${room.wallColor === c.hex ? "active" : ""}`} style={{ background: c.hex }} onClick={() => setRoomField("wallColor", c.hex)} />)}</div>
