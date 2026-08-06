@@ -836,15 +836,17 @@ function CroquisApp() {
   const setRoomField = (field, value) => setRoom((r) => ({ ...r, [field]: value }));
 
   /* ---------- guardar cotización en Supabase ---------- */
+  const [quoteError, setQuoteError] = useState("");
   const sendQuote = async () => {
     if (placed.length === 0 || !store) return;
+    setQuoteError("");
     const { data: quote, error } = await supabase.from("quotes").insert({ store_id: store.id, total, status: "nueva" }).select().single();
-    if (!error && quote) {
-      const items = placed.map((p) => ({ quote_id: quote.id, product_id: p.catalogId, price_at_quote: catalogById.get(p.catalogId).price }));
-      await supabase.from("quote_items").insert(items);
-      setSent(true);
-      setTimeout(() => setSent(false), 4000);
-    }
+    if (error || !quote) { setQuoteError("No se pudo guardar la cotización. Intenta de nuevo, o usa el botón de WhatsApp."); return; }
+    const items = placed.map((p) => ({ quote_id: quote.id, product_id: p.catalogId, price_at_quote: catalogById.get(p.catalogId).price }));
+    const { error: itemsErr } = await supabase.from("quote_items").insert(items);
+    if (itemsErr) { setQuoteError("Se guardó la cotización, pero hubo un problema con el detalle de piezas."); }
+    setSent(true);
+    setTimeout(() => setSent(false), 4000);
   };
 
   const waMessage = useMemo(() => {
@@ -1091,6 +1093,9 @@ function CroquisApp() {
         </div>
       </main>
 
+      {quoteError && (
+        <div className="px-4 sm:px-6 py-2 text-[12px] text-center" style={{ background: "#B0472F15", color: "#B0472F" }}>{quoteError}</div>
+      )}
       <div className="sticky bottom-0 border-t px-4 sm:px-6 py-3 flex items-center justify-between gap-3 flex-wrap" style={{ borderColor: "var(--line)", background: "var(--panel)" }}>
         <div className="min-w-0">
           <p className="mono text-[10px]" style={{ color: "var(--brand-light)" }}>{placed.length} {placed.length === 1 ? "pieza" : "piezas"}</p>
@@ -1229,37 +1234,51 @@ function AdminPanel() {
     }
     setUploadingPhoto(false);
   };
+  const [panelError, setPanelError] = useState("");
   const saveProduct = async () => {
-    if (!form.name || !form.width_m || !form.depth_m || !form.height_m || !form.price || !form.category_id) return;
+    setPanelError("");
+    if (!form.name.trim()) { setPanelError("Ponle un nombre al producto."); return; }
+    if (!form.category_id) { setPanelError("Elige una categoría."); return; }
+    const w = Number(form.width_m), d = Number(form.depth_m), h = Number(form.height_m), price = Number(form.price);
+    if (!(w > 0) || !(d > 0) || !(h > 0)) { setPanelError("Las medidas deben ser mayores a 0."); return; }
+    if (!(price > 0)) { setPanelError("El precio debe ser mayor a 0."); return; }
     const payload = {
-      store_id: store.id, category_id: form.category_id, name: form.name, furniture_type: form.furniture_type,
-      width_m: Number(form.width_m), depth_m: Number(form.depth_m), height_m: Number(form.height_m),
-      color_hex: form.color_hex, price: Number(form.price), is_active: form.is_active, photo_url: form.photo_url || null,
+      store_id: store.id, category_id: form.category_id, name: form.name.trim(), furniture_type: form.furniture_type,
+      width_m: w, depth_m: d, height_m: h,
+      color_hex: form.color_hex, price, is_active: form.is_active, photo_url: form.photo_url || null,
     };
     if (editingId) {
       const { data, error } = await supabase.from("products").update(payload).eq("id", editingId).select().single();
-      if (!error) setProducts((p) => p.map((x) => (x.id === editingId ? data : x)));
+      if (error) { setPanelError("No se pudo guardar: " + error.message); return; }
+      setProducts((p) => p.map((x) => (x.id === editingId ? data : x)));
     } else {
       const { data, error } = await supabase.from("products").insert(payload).select().single();
-      if (!error) setProducts((p) => [...p, data]);
+      if (error) { setPanelError("No se pudo agregar: " + error.message); return; }
+      setProducts((p) => [...p, data]);
     }
     setShowForm(false);
   };
   const removeProduct = async (id) => {
     const { error } = await supabase.from("products").delete().eq("id", id);
-    if (!error) setProducts((p) => p.filter((x) => x.id !== id));
+    if (error) { setPanelError("No se pudo quitar el producto: " + error.message); return; }
+    setProducts((p) => p.filter((x) => x.id !== id));
   };
   const toggleActive = async (p) => {
     const { data, error } = await supabase.from("products").update({ is_active: !p.is_active }).eq("id", p.id).select().single();
-    if (!error) setProducts((prev) => prev.map((x) => (x.id === p.id ? data : x)));
+    if (error) { setPanelError("No se pudo actualizar: " + error.message); return; }
+    setProducts((prev) => prev.map((x) => (x.id === p.id ? data : x)));
   };
   const setQuoteStatus = async (id, status) => {
     const { error } = await supabase.from("quotes").update({ status }).eq("id", id);
-    if (!error) setQuotes((qs) => qs.map((q) => (q.id === id ? { ...q, status } : q)));
+    if (error) { setPanelError("No se pudo actualizar la cotización: " + error.message); return; }
+    setQuotes((qs) => qs.map((q) => (q.id === id ? { ...q, status } : q)));
   };
   const saveBrand = async () => {
+    if (!brandDraft.name.trim()) { setPanelError("El nombre de la tienda no puede quedar vacío."); return; }
     const { data, error } = await supabase.from("stores").update(brandDraft).eq("id", store.id).select().single();
-    if (!error) setStore(data);
+    if (error) { setPanelError("No se pudo guardar la marca: " + error.message); return; }
+    setStore(data);
+    setPanelError("");
   };
 
   const activeCount = useMemo(() => products.filter((p) => p.is_active).length, [products]);
@@ -1432,6 +1451,7 @@ function AdminPanel() {
                   </div>
                   {uploadingPhoto && <p className="mono text-[11px] mt-1" style={{ color: "var(--brand-light)" }}>Subiendo…</p>}
                 </div>
+                {panelError && <p className="text-[12px] mb-2" style={{ color: "#B0472F" }}>{panelError}</p>}
                 <button onClick={saveProduct} className="btn-primary rounded-lg px-4 py-2 text-sm font-medium">
                   {editingId ? "Guardar cambios" : "Agregar al catálogo"}
                 </button>
@@ -1532,6 +1552,7 @@ function AdminPanel() {
                   ))}
                 </div>
               </div>
+              {panelError && <p className="text-[12px] mb-2" style={{ color: "#B0472F" }}>{panelError}</p>}
               <button onClick={saveBrand} className="btn-primary rounded-lg px-4 py-2 text-sm font-medium">Guardar cambios</button>
             </div>
           </div>
