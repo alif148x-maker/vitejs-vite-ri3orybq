@@ -410,7 +410,7 @@ function CroquisApp() {
       setCatalog((prods || []).map((p) => ({
         id: p.id, name: p.name, category: catNameById.get(p.category_id) || "General",
         type: p.furniture_type, w: Number(p.width_m), d: Number(p.depth_m), h: Number(p.height_m),
-        color: p.color_hex, price: Number(p.price),
+        color: p.color_hex, price: Number(p.price), photo: p.photo_url || null,
       })));
       setLoadStatus("listo");
     })();
@@ -859,7 +859,11 @@ function CroquisApp() {
             <div className="grid sm:grid-cols-2 gap-2.5 overflow-y-auto pr-1" style={{ maxHeight: 260 }}>
               {filteredCatalog.map((item) => (
                 <div key={item.id} className="catcard rounded-lg p-2.5 flex gap-2.5 items-center">
-                  <div className="w-11 h-11 rounded-md flex-shrink-0" style={{ background: item.color }} />
+                  {item.photo ? (
+                    <img src={item.photo} alt={item.name} className="w-11 h-11 rounded-md flex-shrink-0 object-cover" />
+                  ) : (
+                    <div className="w-11 h-11 rounded-md flex-shrink-0" style={{ background: item.color }} />
+                  )}
                   <div className="min-w-0 flex-1">
                     <p className="text-[12.5px] font-medium leading-tight truncate">{item.name}</p>
                     <p className="mono text-[10px]" style={{ color: "var(--brand-light)" }}>{item.w}×{item.d} m</p>
@@ -923,7 +927,7 @@ const STATUS_META = {
   cerrada: { label: "Cerrada", icon: Check, color: "#3D6B4A" },
 };
 
-const emptyProductForm = { category_id: "", furniture_type: "sofa", name: "", width_m: "", depth_m: "", height_m: "", color_hex: "#6B4A3A", price: "", is_active: true };
+const emptyProductForm = { category_id: "", furniture_type: "sofa", name: "", width_m: "", depth_m: "", height_m: "", color_hex: "#6B4A3A", price: "", is_active: true, photo_url: "" };
 
 function AdminPanel() {
   const [session, setSession] = useState(null);
@@ -999,12 +1003,25 @@ function AdminPanel() {
   const startNew = () => { setForm({ ...emptyProductForm, category_id: categories[0]?.id || "" }); setEditingId(null); setShowForm(true); };
   const startEdit = (p) => { setForm({ ...p }); setEditingId(p.id); setShowForm(true); };
 
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const handlePhotoUpload = async (file) => {
+    if (!file) return;
+    setUploadingPhoto(true);
+    const ext = file.name.split(".").pop();
+    const path = `${store.id}/${Date.now()}.${ext}`;
+    const { error } = await supabase.storage.from("product-images").upload(path, file, { upsert: true });
+    if (!error) {
+      const { data } = supabase.storage.from("product-images").getPublicUrl(path);
+      setForm((f) => ({ ...f, photo_url: data.publicUrl }));
+    }
+    setUploadingPhoto(false);
+  };
   const saveProduct = async () => {
     if (!form.name || !form.width_m || !form.depth_m || !form.height_m || !form.price || !form.category_id) return;
     const payload = {
       store_id: store.id, category_id: form.category_id, name: form.name, furniture_type: form.furniture_type,
       width_m: Number(form.width_m), depth_m: Number(form.depth_m), height_m: Number(form.height_m),
-      color_hex: form.color_hex, price: Number(form.price), is_active: form.is_active,
+      color_hex: form.color_hex, price: Number(form.price), is_active: form.is_active, photo_url: form.photo_url || null,
     };
     if (editingId) {
       const { data, error } = await supabase.from("products").update(payload).eq("id", editingId).select().single();
@@ -1194,6 +1211,14 @@ function AdminPanel() {
                     <span className="mono text-[12px]" style={{ color: "var(--brand-light)" }}>{form.color_hex}</span>
                   </div>
                 </div>
+                <div className="mb-4">
+                  <label className="text-[11px] block mb-1.5" style={{ color: "var(--brand-light)" }}>Foto del producto (opcional)</label>
+                  <div className="flex gap-2 items-center">
+                    {form.photo_url && <img src={form.photo_url} alt="" className="w-12 h-12 rounded-md object-cover border" style={{ borderColor: "var(--line)" }} />}
+                    <input type="file" accept="image/*" onChange={(e) => handlePhotoUpload(e.target.files?.[0])} className="text-[12px]" />
+                  </div>
+                  {uploadingPhoto && <p className="mono text-[11px] mt-1" style={{ color: "var(--brand-light)" }}>Subiendo…</p>}
+                </div>
                 <button onClick={saveProduct} className="btn-primary rounded-lg px-4 py-2 text-sm font-medium">
                   {editingId ? "Guardar cambios" : "Agregar al catálogo"}
                 </button>
@@ -1207,7 +1232,11 @@ function AdminPanel() {
                   {products.map((p) => (
                     <tr key={p.id}>
                       <td className="flex items-center gap-2 py-2.5">
-                        <div className="w-6 h-6 rounded flex-shrink-0" style={{ background: p.color_hex }} />
+                        {p.photo_url ? (
+                          <img src={p.photo_url} alt="" className="w-6 h-6 rounded object-cover flex-shrink-0" />
+                        ) : (
+                          <div className="w-6 h-6 rounded flex-shrink-0" style={{ background: p.color_hex }} />
+                        )}
                         {p.name}
                       </td>
                       <td>{categoryNameById.get(p.category_id) || "—"}</td>
