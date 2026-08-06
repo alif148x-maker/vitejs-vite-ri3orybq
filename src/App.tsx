@@ -511,10 +511,15 @@ function CroquisApp() {
         if (item && cat) {
           raycaster.setFromCamera(getMouse(e), camera);
           if (isWallType(cat.type)) {
-            const wallPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), roomRef.current.length / 2);
+            const isSide = item.wall === "side";
+            const wallPlane = isSide
+              ? new THREE.Plane(new THREE.Vector3(1, 0, 0), roomRef.current.width / 2)
+              : new THREE.Plane(new THREE.Vector3(0, 0, 1), roomRef.current.length / 2);
             if (raycaster.ray.intersectPlane(wallPlane, dragPoint)) {
-              const halfW = Math.max(roomRef.current.width / 2 - cat.w / 2 - 0.05, 0);
-              const x = Math.min(halfW, Math.max(-halfW, dragPoint.x));
+              const roomSpan = isSide ? roomRef.current.length : roomRef.current.width;
+              const half = Math.max(roomSpan / 2 - cat.w / 2 - 0.05, 0);
+              const raw = isSide ? dragPoint.z : dragPoint.x;
+              const x = Math.min(half, Math.max(-half, raw));
               setPlaced((prev) => prev.map((p) => (p.id === id ? { ...p, x } : p)));
             }
           } else if (raycaster.ray.intersectPlane(floorPlane, dragPoint)) {
@@ -620,14 +625,20 @@ function CroquisApp() {
         t.itemsGroup.add(mesh);
       }
       if (isWallType(cat.type)) {
-        mesh.position.set(p.x, WALL_ELEVATION[cat.type] || 1.2, -room.length / 2 + 0.03);
-        mesh.rotation.y = 0;
+        const elevY = p.elevY || WALL_ELEVATION[cat.type] || 1.2;
+        if (p.wall === "side") {
+          mesh.position.set(-room.width / 2 + 0.03, elevY, p.x);
+          mesh.rotation.y = Math.PI / 2;
+        } else {
+          mesh.position.set(p.x, elevY, -room.length / 2 + 0.03);
+          mesh.rotation.y = 0;
+        }
       } else {
         mesh.position.set(p.x, 0, p.z);
         mesh.rotation.y = p.rotY;
       }
     });
-  }, [placed, catalogById, room.length]);
+  }, [placed, catalogById, room.length, room.width]);
 
   /* ---------- resaltar selección ---------- */
   useEffect(() => {
@@ -654,16 +665,29 @@ function CroquisApp() {
     const id = `${catalogId}-${Date.now()}`;
     if (isWallType(cat.type)) {
       const existingWall = placed
-        .filter((p) => isWallType(catalogById.get(p.catalogId)?.type))
+        .filter((p) => isWallType(catalogById.get(p.catalogId)?.type) && p.wall === "back")
         .map((p) => ({ x: p.x, w: catalogById.get(p.catalogId).w }));
       const x = findFreeWallX(existingWall, room.width, cat.w);
-      setPlaced((prev) => [...prev, { id, catalogId, x, z: -room.length / 2, rotY: 0 }]);
+      setPlaced((prev) => [...prev, { id, catalogId, x, z: -room.length / 2, rotY: 0, wall: "back", elevY: WALL_ELEVATION[cat.type] || 1.2 }]);
     } else {
       const pos = findFreePosition(placed, catalogById, room.width, room.length, cat.w, cat.d);
       setPlaced((prev) => [...prev, { id, catalogId, x: pos.x, z: pos.z, rotY: 0 }]);
     }
     setSelectedId(id);
   }, [placed, catalogById, room.width, room.length]);
+
+  const setWallSide = (wall) => {
+    setPlaced((prev) => prev.map((p) => (p.id === selectedId ? { ...p, wall, x: 0 } : p)));
+  };
+  const nudgeHeight = (dy) => {
+    setPlaced((prev) => prev.map((p) => {
+      if (p.id !== selectedId) return p;
+      const cat = catalogById.get(p.catalogId);
+      const minY = cat.h / 2 + 0.1;
+      const maxY = room.height - cat.h / 2 - 0.1;
+      return { ...p, elevY: Math.min(maxY, Math.max(minY, (p.elevY || 1.2) + dy)) };
+    }));
+  };
 
   const nudge = (dx, dz) => {
     setPlaced((prev) => prev.map((p) => {
@@ -820,13 +844,38 @@ function CroquisApp() {
             <div className="cardline rounded-xl p-4">
               <div className="flex items-center gap-2 mb-1"><Move size={16} style={{ color: "var(--brand)" }} /><h3 className="disp font-semibold text-sm">{selectedCat.name}</h3></div>
               <p className="mono text-[11px] mb-3" style={{ color: "var(--walnut)" }}>{selectedCat.w}×{selectedCat.d}×{selectedCat.h} m · ${selectedCat.price}</p>
-              <div className="grid grid-cols-3 gap-1.5 w-[140px] mx-auto mb-3">
-                <div /><button className="ctrlbtn rounded p-2 flex justify-center" onClick={() => nudge(0, -0.1)}><ArrowUp size={14} /></button><div />
-                <button className="ctrlbtn rounded p-2 flex justify-center" onClick={() => nudge(-0.1, 0)}><ArrowLeft size={14} /></button>
-                <button className="ctrlbtn rounded p-2 flex justify-center" onClick={rotateSelected}><RotateCw size={14} /></button>
-                <button className="ctrlbtn rounded p-2 flex justify-center" onClick={() => nudge(0.1, 0)}><ArrowRight size={14} /></button>
-                <div /><button className="ctrlbtn rounded p-2 flex justify-center" onClick={() => nudge(0, 0.1)}><ArrowDown size={14} /></button><div />
-              </div>
+
+              {isWallType(selectedCat.type) ? (
+                <>
+                  <div className="text-[11px] mb-1.5" style={{ color: "var(--brand-light)" }}>Pared</div>
+                  <div className="flex gap-1.5 mb-3">
+                    <button
+                      onClick={() => setWallSide("back")}
+                      className="flex-1 text-[11px] py-1.5 rounded border"
+                      style={{ borderColor: "var(--line)", background: (selectedItem.wall || "back") === "back" ? "var(--brand)" : "transparent", color: (selectedItem.wall || "back") === "back" ? "#fff" : "var(--ink)" }}
+                    >Trasera</button>
+                    <button
+                      onClick={() => setWallSide("side")}
+                      className="flex-1 text-[11px] py-1.5 rounded border"
+                      style={{ borderColor: "var(--line)", background: selectedItem.wall === "side" ? "var(--brand)" : "transparent", color: selectedItem.wall === "side" ? "#fff" : "var(--ink)" }}
+                    >Lateral</button>
+                  </div>
+                  <div className="text-[11px] mb-1.5" style={{ color: "var(--brand-light)" }}>Altura</div>
+                  <div className="flex items-center justify-center gap-2 mb-3">
+                    <button className="ctrlbtn rounded p-2 flex justify-center" onClick={() => nudgeHeight(-0.1)}><ArrowDown size={14} /></button>
+                    <span className="mono text-[11px]" style={{ color: "var(--walnut)" }}>{(selectedItem.elevY || 1.2).toFixed(1)} m</span>
+                    <button className="ctrlbtn rounded p-2 flex justify-center" onClick={() => nudgeHeight(0.1)}><ArrowUp size={14} /></button>
+                  </div>
+                </>
+              ) : (
+                <div className="grid grid-cols-3 gap-1.5 w-[140px] mx-auto mb-3">
+                  <div /><button className="ctrlbtn rounded p-2 flex justify-center" onClick={() => nudge(0, -0.1)}><ArrowUp size={14} /></button><div />
+                  <button className="ctrlbtn rounded p-2 flex justify-center" onClick={() => nudge(-0.1, 0)}><ArrowLeft size={14} /></button>
+                  <button className="ctrlbtn rounded p-2 flex justify-center" onClick={rotateSelected}><RotateCw size={14} /></button>
+                  <button className="ctrlbtn rounded p-2 flex justify-center" onClick={() => nudge(0.1, 0)}><ArrowRight size={14} /></button>
+                  <div /><button className="ctrlbtn rounded p-2 flex justify-center" onClick={() => nudge(0, 0.1)}><ArrowDown size={14} /></button><div />
+                </div>
+              )}
               <button onClick={removeSelected} className="w-full flex items-center justify-center gap-1.5 text-[12px] py-1.5 rounded border" style={{ borderColor: "#B0472F55", color: "#B0472F" }}><Trash2 size={13} /> Quitar del espacio</button>
             </div>
           )}
