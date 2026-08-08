@@ -1,3 +1,31 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  @apply bg-cream text-olive-900 font-body;
+}
+
+h1, h2, h3, h4, .font-display {
+  font-family: "Baloo 2", cursive, system-ui, sans-serif;
+}
+
+.paw-bg {
+  background-image: radial-gradient(rgba(180, 166, 120, 0.16) 2px, transparent 2px);
+  background-size: 22px 22px;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #f7f6f0;
+}
+::-webkit-scrollbar-thumb {
+  background: #c7bd93;
+  border-radius: 10px;
+}
