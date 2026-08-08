@@ -1,5 +1,6 @@
-import { Wheat, Heart, ShieldCheck, Sparkles } from "lucide-react";
+import { Wheat, Heart, ShieldCheck, Sparkles, PawPrint } from "lucide-react";
 import { CAKE_COLORS, FLAVORS } from "../data/catalog";
+import founderPhoto from "../assets/hero-founder.jpg";
 
 const FEATURES = [
   {
@@ -37,6 +38,32 @@ export default function About() {
           cada cumpleaños, aniversario o celebración especial tenga un cake tan rico como seguro para comer. Cada
           pedido se prepara a mano y se personaliza según el nombre, la edad y los colores favoritos de tu mascota.
         </p>
+      </div>
+
+      <div className="mt-12 grid items-center gap-8 rounded-[2rem] bg-white p-6 shadow-soft ring-1 ring-olive-200/60 sm:p-10 md:grid-cols-[0.8fr_1.2fr]">
+        <img
+          src={founderPhoto}
+          alt="María Pía Tamburrelli, fundadora de Barki"
+          className="mx-auto aspect-[4/5] w-full max-w-xs rounded-[1.75rem] object-cover shadow-soft"
+        />
+        <div>
+          <PawPrint className="text-blush-300" size={28} />
+          <h3 className="mt-2 font-display text-2xl font-bold text-olive-800">¿Quién está detrás de Barki?</h3>
+          <p className="mt-4 text-olive-600">
+            ¡Hola! Soy <span className="font-semibold text-olive-800">María Pía Tamburrelli</span>, tengo 21 años y soy
+            la persona detrás de Barki. Es un emprendimiento local, orgullosamente panameño, que nació gracias a mis
+            dos perritos, <span className="font-semibold text-olive-800">Blu</span> y{" "}
+            <span className="font-semibold text-olive-800">Koko</span>, quienes fueron mi mayor inspiración para
+            hacerlo realidad.
+          </p>
+          <p className="mt-3 text-olive-600">
+            Cada cake y cada pupcake está hecho por mí, cuidando cada detalle como si fuera para Koko y Blu.
+          </p>
+          <p className="mt-3 text-olive-600">
+            Gracias por apoyar los pequeños emprendimientos y por confiar en Barki para celebrar a sus peluditos.
+            ¡Espero poder ser parte de muchos momentos especiales junto a ustedes!
+          </p>
+        </div>
       </div>
 
       <div className="mt-12 grid grid-cols-2 gap-4 md:grid-cols-4">
