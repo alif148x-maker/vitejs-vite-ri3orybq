@@ -1,6 +1,5 @@
 import { Instagram, MessageCircle, PawPrint } from "lucide-react";
 import dogCake from "../assets/hero-dog-cake.jpg";
-import founderCake from "../assets/hero-founder.jpg";
 import { INSTAGRAM_URL, WHATSAPP_NUMBER } from "../data/config";
 
 export default function Hero() {
@@ -47,15 +46,10 @@ export default function Hero() {
         <div className="relative mx-auto grid w-full max-w-md grid-cols-2 gap-4">
           <img
             src={dogCake}
-            alt="Perrito celebrando su cumpleaños con un cake Barki"
+            alt="Koko celebrando su cumpleaños con un cake Barki"
             className="col-span-2 aspect-[4/3] w-full rounded-[2rem] object-cover shadow-soft"
           />
-          <img
-            src={founderCake}
-            alt="Equipo Barki presentando un cake personalizado"
-            className="col-span-2 aspect-[16/9] w-full rounded-[2rem] object-cover shadow-soft sm:col-span-1"
-          />
-          <div className="col-span-2 flex flex-col justify-center rounded-[2rem] bg-olive-500 p-5 text-white shadow-soft sm:col-span-1">
+          <div className="col-span-2 flex flex-col justify-center rounded-[2rem] bg-olive-500 p-5 text-white shadow-soft">
             <span className="font-display text-3xl font-extrabold">100%</span>
             <span className="text-sm font-semibold text-olive-100">Natural · Libre de gluten, soya y azúcar</span>
           </div>
