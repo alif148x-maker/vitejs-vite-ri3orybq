@@ -1,5 +1,5 @@
 import { Wheat, Heart, ShieldCheck, Sparkles, PawPrint } from "lucide-react";
-import { CAKE_COLORS, FLAVORS } from "../data/catalog";
+import { CAKE_COLORS, FLAVORS, VEGETABLE_COLORS } from "../data/catalog";
 import founderPhoto from "../assets/hero-founder.jpg";
 
 const FEATURES = [
@@ -98,6 +98,16 @@ export default function About() {
           <p className="mt-1 text-xs text-olive-200">Elige 1 o 2 colores — 100% naturales</p>
           <div className="mt-3 flex flex-wrap gap-3">
             {CAKE_COLORS.map((c) => (
+              <div key={c.name} className="flex items-center gap-2 rounded-full bg-white/10 py-1.5 pl-1.5 pr-3">
+                <span className="h-6 w-6 rounded-full border-2 border-white/70" style={{ backgroundColor: c.hex }} />
+                <span className="text-xs font-semibold">{c.name}</span>
+              </div>
+            ))}
+          </div>
+
+          <p className="mt-5 text-xs text-olive-200">Colorante vegetal</p>
+          <div className="mt-3 flex flex-wrap gap-3">
+            {VEGETABLE_COLORS.map((c) => (
               <div key={c.name} className="flex items-center gap-2 rounded-full bg-white/10 py-1.5 pl-1.5 pr-3">
                 <span className="h-6 w-6 rounded-full border-2 border-white/70" style={{ backgroundColor: c.hex }} />
                 <span className="text-xs font-semibold">{c.name}</span>

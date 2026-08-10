@@ -58,6 +58,13 @@ export const CAKE_COLORS = [
   { name: "Verde (espirulina)", hex: "#A9C08C" },
 ];
 
+export const VEGETABLE_COLORS = [
+  { name: "Rojo", hex: "#F54A5A" },
+  { name: "Azul", hex: "#336AC4" },
+  { name: "Celeste", hex: "#A6D3EA" },
+  { name: "Amarillo", hex: "#FAD03C" },
+];
+
 export const SHAPES = ["Hueso", "Paw"];
 
 export const PLANS: Product[] = [
