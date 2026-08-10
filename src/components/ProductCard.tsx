@@ -1,7 +1,9 @@
 import { useMemo, useState } from "react";
 import { Minus, Plus, ShoppingBasket, PawPrint } from "lucide-react";
 import type { Product } from "../data/catalog";
-import { CAKE_COLORS, FLAVORS, SHAPES } from "../data/catalog";
+import { CAKE_COLORS, VEGETABLE_COLORS, FLAVORS, SHAPES } from "../data/catalog";
+
+const COLOR_OPTIONS = [...CAKE_COLORS, ...VEGETABLE_COLORS];
 import { useCart } from "../context/CartContext";
 
 export default function ProductCard({ product }: { product: Product }) {
@@ -159,7 +161,7 @@ export default function ProductCard({ product }: { product: Product }) {
               Colores (elige hasta 2)
             </label>
             <div className="flex flex-wrap gap-2">
-              {CAKE_COLORS.map((c) => (
+              {COLOR_OPTIONS.map((c) => (
                 <button
                   key={c.name}
                   type="button"

@@ -47,7 +47,7 @@ export default function Hero() {
           <img
             src={dogCake}
             alt="Koko celebrando su cumpleaños con un cake Barki"
-            className="col-span-2 aspect-[4/3] w-full rounded-[2rem] object-cover shadow-soft"
+            className="col-span-2 w-full rounded-[2rem] object-contain shadow-soft"
           />
           <div className="col-span-2 flex flex-col justify-center rounded-[2rem] bg-olive-500 p-5 text-white shadow-soft">
             <span className="font-display text-3xl font-extrabold">100%</span>
