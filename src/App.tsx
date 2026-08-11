@@ -9,7 +9,15 @@ import { RotateCw, Trash2, Plus, Minus, Home, Palette, Ruler, ShoppingCart, Move
 const SUPABASE_URL = "https://yqkvxceisuhxgndwxoqa.supabase.co";
 const SUPABASE_KEY = "sb_publishable_cmerPO_b3ygWKd59fyz1yQ_oMrQmVJK";
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-const STORE_SLUG = "mueble-roble";
+
+// Multi-tienda: la tienda a mostrar se decide por la dirección web.
+// tuapp.com/mueble-roble -> muestra esa tienda. tuapp.com/ (sin nada) -> tienda de ejemplo.
+function getStoreSlugFromPath() {
+  if (typeof window === "undefined") return "mueble-roble";
+  const path = window.location.pathname.replace(/^\/+|\/+$/g, "");
+  if (!path || path === "admin") return "mueble-roble";
+  return path;
+}
 
 const WALL_COLORS = [
   { name: "Blanco cálido", hex: "#F5F2EC" },
@@ -459,6 +467,7 @@ function CroquisApp() {
   const [catalog, setCatalog] = useState([]);
   const [categoryNames, setCategoryNames] = useState([]);
   const [loadStatus, setLoadStatus] = useState("cargando");
+  const [storeSlug] = useState(() => getStoreSlugFromPath());
 
   const [room, setRoom] = useState({ width: 4, length: 2.8, height: 2.6, wallColor: "#F5F2EC", floorColor: "#C9A66B", shape: "rect", extWidth: 1.5, extDepth: 1.5 });
   const [roomDraft, setRoomDraft] = useState({ width: "4", length: "2.8", height: "2.6", extWidth: "1.5", extDepth: "1.5" });
@@ -485,7 +494,7 @@ function CroquisApp() {
   /* ---------- cargar datos reales de Supabase ---------- */
   useEffect(() => {
     (async () => {
-      const { data: storeRow, error: storeErr } = await supabase.from("stores").select("*").eq("slug", STORE_SLUG).single();
+      const { data: storeRow, error: storeErr } = await supabase.from("stores").select("*").eq("slug", storeSlug).single();
       if (storeErr || !storeRow) { setLoadStatus("error"); return; }
       setStore(storeRow);
       const { data: cats } = await supabase.from("categories").select("*").eq("store_id", storeRow.id).order("sort_order");
@@ -500,7 +509,7 @@ function CroquisApp() {
       })));
       setLoadStatus("listo");
     })();
-  }, []);
+  }, [storeSlug]);
 
   /* ---------- init three.js (una vez) ---------- */
   useEffect(() => {
@@ -877,7 +886,7 @@ function CroquisApp() {
   if (loadStatus === "error" || !store) {
     return (
       <div className="min-h-screen flex items-center justify-center text-center p-6" style={{ background: "#F5F2EC", fontFamily: "Inter, sans-serif" }}>
-        No se pudo cargar la tienda "{STORE_SLUG}".
+        No se pudo cargar la tienda "{storeSlug}".
       </div>
     );
   }
