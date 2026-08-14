@@ -903,16 +903,16 @@ function CroquisApp() {
         }
         .croquis-root .disp{ font-family:'Space Grotesk',sans-serif; }
         .croquis-root .mono{ font-family:'IBM Plex Mono',monospace; }
-        .swatch{ width:26px; height:26px; border-radius:6px; cursor:pointer; border:2px solid transparent; flex-shrink:0; }
+        .swatch{ width:26px; height:26px; border-radius:6px; cursor:pointer; border:2px solid transparent; flex-shrink:0; transition:transform .12s; } .swatch:active{ transform:scale(0.9); }
         .swatch.active{ border-color:var(--brand); box-shadow:0 0 0 2px #F5F2EC, 0 0 0 3px var(--brand); }
-        .cardline{ border:1px solid var(--line); background:var(--panel); }
-        .tabpill{ font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.02em; padding:5px 10px; border-radius:999px; border:1px solid var(--line); white-space:nowrap; }
+        .cardline{ border:1px solid var(--line); background:var(--panel); box-shadow:0 1px 3px rgba(43,32,20,0.05); transition:box-shadow .2s; }
+        .tabpill{ font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.02em; padding:5px 10px; border-radius:999px; border:1px solid var(--line); white-space:nowrap; transition:background .15s, color .15s; }
         .tabpill.active{ background:var(--brand); color:#fff; border-color:var(--brand); }
-        .catcard{ border:1px solid var(--line); background:var(--panel); transition:border-color .15s; }
+        .catcard{ border:1px solid var(--line); background:var(--panel); transition:border-color .15s, box-shadow .15s; } .catcard:hover{ box-shadow:0 4px 12px rgba(43,32,20,0.06); }
         .catcard:hover{ border-color:var(--brand-light); }
-        .btn-primary{ background:var(--brand); color:#fff; }
+        .btn-primary{ background:var(--brand); color:#fff; transition:background .15s, transform .1s; } .btn-primary:active{ transform:scale(0.97); }
         .btn-primary:hover{ background:var(--brand-dark); }
-        .btn-wa{ background:#25D366; color:#fff; }
+        .btn-wa{ background:#25D366; color:#fff; transition:opacity .15s, transform .1s; } .btn-wa:active{ transform:scale(0.97); }
         .btn-wa:hover{ background:#1DA851; }
         .ctrlbtn{ background:#fff; border:1px solid var(--line); }
         .ctrlbtn:active{ background:var(--bg); }
@@ -1357,8 +1357,8 @@ function AdminPanel() {
         .navitem.active{ background:var(--brand); color:#fff; }
         .field label{ font-size:11px; color:var(--brand-light); display:block; margin-bottom:3px; }
         .field input, .field select{ width:100%; border:1px solid var(--line); border-radius:6px; padding:7px 9px; font-size:13.5px; background:#fff; }
-        .btn-primary{ background:var(--brand); color:#fff; }
-        .cardline{ border:1px solid var(--line); background:var(--panel); }
+        .btn-primary{ background:var(--brand); color:#fff; transition:background .15s, transform .1s; } .btn-primary:active{ transform:scale(0.97); }
+        .cardline{ border:1px solid var(--line); background:var(--panel); box-shadow:0 1px 3px rgba(43,32,20,0.05); transition:box-shadow .2s; }
         .swatch{ width:24px; height:24px; border-radius:6px; cursor:pointer; border:2px solid transparent; }
         .swatch.active{ border-color:var(--ink); }
         table.plist{ width:100%; border-collapse:collapse; }
@@ -1629,9 +1629,127 @@ function ResetPasswordScreen() {
   );
 }
 
+/* ==================================================================== */
+/* PÁGINA DE PRESENTACIÓN — lo primero que ve una mueblería               */
+/* ==================================================================== */
+
+const PITCH_WHATSAPP = "50769800375";
+
+function LandingPage() {
+  const waLink = `https://wa.me/${PITCH_WHATSAPP}?text=${encodeURIComponent("Hola, vi Croquis y quiero saber más para mi mueblería.")}`;
+  return (
+    <div className="landing-root">
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap');
+        .landing-root{ --bg:#F5F2EC; --ink:#211D18; --brand:#2C4A3E; --brand-dark:#1D332B; --brand-light:#7C948B; --walnut:#96602F; --line:#DED7C7; --panel:#FCFAF6;
+          font-family:'Inter',sans-serif; color:var(--ink); background:var(--bg); }
+        .landing-root .disp{ font-family:'Space Grotesk',sans-serif; }
+        .landing-root .mono{ font-family:'IBM Plex Mono',monospace; }
+        .lp-btn-primary{ background:var(--brand); color:#fff; transition:background .15s; }
+        .lp-btn-primary:hover{ background:var(--brand-dark); }
+        .lp-btn-secondary{ background:#25D366; color:#fff; transition:opacity .15s; }
+        .lp-btn-secondary:hover{ opacity:.9; }
+        .lp-card{ border:1px solid var(--line); background:var(--panel); border-radius:14px; transition:box-shadow .2s, transform .2s; }
+        .lp-card:hover{ box-shadow:0 8px 24px rgba(43,32,20,0.08); transform:translateY(-2px); }
+        .lp-dim-tag{ font-family:'IBM Plex Mono',monospace; font-size:12px; padding:3px 9px; border-radius:4px; background:#FCFAF6; border:1px solid var(--line); color:var(--brand); display:inline-block; }
+      `}</style>
+
+      <header className="flex items-center justify-between px-6 sm:px-10 py-5 max-w-[1100px] mx-auto">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-md flex items-center justify-center disp font-bold text-white" style={{ background: "var(--brand)" }}>C</div>
+          <span className="disp font-bold text-lg">Croquis</span>
+        </div>
+        <a href="/admin" className="mono text-[11px] underline" style={{ color: "var(--brand-light)" }}>Acceso para tiendas</a>
+      </header>
+
+      {/* Hero */}
+      <section className="px-6 sm:px-10 pt-8 pb-16 max-w-[1100px] mx-auto">
+        <div className="grid md:grid-cols-2 gap-10 items-center">
+          <div>
+            <span className="mono text-[11px] uppercase tracking-widest" style={{ color: "var(--walnut)" }}>Para mueblerías en Panamá</span>
+            <h1 className="disp font-bold leading-[1.05] mt-3 mb-5" style={{ fontSize: "clamp(32px, 5vw, 48px)" }}>
+              Que tu cliente vea el mueble<br />en su cuarto, antes de comprarlo.
+            </h1>
+            <p className="text-[16px] mb-7" style={{ color: "#4A4640" }}>
+              Croquis es un visualizador 3D con tu marca, tu catálogo y tu color — para que cada cliente arme su cuarto, coloque tus muebles, y te mande la cotización directo a WhatsApp.
+            </p>
+            <div className="flex flex-wrap gap-3">
+              <a href="/mueble-roble" className="lp-btn-primary rounded-lg px-5 py-3 text-sm font-medium">Ver demo en vivo</a>
+              <a href={waLink} target="_blank" rel="noreferrer" className="lp-btn-secondary rounded-lg px-5 py-3 text-sm font-medium">Hablar por WhatsApp</a>
+            </div>
+          </div>
+          <div className="relative rounded-2xl p-8" style={{ background: "var(--panel)", border: "1px solid var(--line)" }}>
+            <div className="rounded-xl h-56 flex items-end justify-center relative overflow-hidden" style={{ background: "#EFEBE2" }}>
+              <div className="absolute top-6 left-6 right-6 h-32" style={{ background: "#5B6E5F" }} />
+              <div className="absolute bottom-0 left-0 right-0 h-24" style={{ background: "#C9A66B" }} />
+              <div className="absolute" style={{ bottom: 28, left: "50%", transform: "translateX(-50%)", width: 90, height: 60, background: "#6B4A3A", borderRadius: 4 }} />
+            </div>
+            <div className="flex justify-between mt-4">
+              <span className="lp-dim-tag">4.00 m</span>
+              <span className="lp-dim-tag">2.80 m</span>
+            </div>
+            <p className="mono text-[10px] mt-3 text-center" style={{ color: "var(--brand-light)" }}>arrastra · gira · pega a la pared</p>
+          </div>
+        </div>
+      </section>
+
+      {/* Features */}
+      <section className="px-6 sm:px-10 py-14" style={{ background: "var(--panel)", borderTop: "1px solid var(--line)", borderBottom: "1px solid var(--line)" }}>
+        <div className="max-w-[1100px] mx-auto grid sm:grid-cols-3 gap-5">
+          {[
+            { t: "Visualizador 3D real", d: "El cliente pone medidas, colores de pared y piso, y coloca tus muebles — arrastrando con el dedo, sin instalar nada." },
+            { t: "Tu marca, tu catálogo", d: "Tu nombre, tu color, tus productos. Cada tienda tiene su propio link — nadie ve el catálogo de otra mueblería." },
+            { t: "Cotizaciones directo a WhatsApp", d: "Cuando el cliente arma su diseño, te llega el detalle y el total — listo para cerrar la venta." },
+          ].map((f) => (
+            <div key={f.t} className="lp-card p-5">
+              <h3 className="disp font-semibold text-[16px] mb-2">{f.t}</h3>
+              <p className="text-[13.5px]" style={{ color: "#4A4640" }}>{f.d}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Cómo funciona */}
+      <section className="px-6 sm:px-10 py-16 max-w-[1100px] mx-auto">
+        <h2 className="disp font-bold text-2xl mb-8 text-center">Cómo empieza tu tienda</h2>
+        <div className="grid sm:grid-cols-3 gap-6">
+          {[
+            { n: "1", t: "Suben su catálogo", d: "Nombre, medidas, precio y color de cada mueble, desde un panel simple — sin tocar código." },
+            { n: "2", t: "Comparten su link", d: "En su Instagram, WhatsApp, o dentro de su página web actual." },
+            { n: "3", t: "Reciben cotizaciones", d: "Cada diseño que arma un cliente les llega directo, listo para dar seguimiento." },
+          ].map((s) => (
+            <div key={s.n}>
+              <span className="mono text-[13px]" style={{ color: "var(--walnut)" }}>{s.n}</span>
+              <h3 className="disp font-semibold text-[15px] mt-1 mb-1.5">{s.t}</h3>
+              <p className="text-[13.5px]" style={{ color: "#4A4640" }}>{s.d}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* CTA final */}
+      <section className="px-6 sm:px-10 py-14 text-center" style={{ background: "var(--brand)", color: "#fff" }}>
+        <h2 className="disp font-bold text-2xl mb-3">¿Vemos cómo se ve con tus muebles?</h2>
+        <p className="text-[14px] mb-6" style={{ color: "#D7E0DA" }}>Dos minutos bastan para que veas el demo funcionando de verdad.</p>
+        <div className="flex flex-wrap gap-3 justify-center">
+          <a href="/mueble-roble" className="rounded-lg px-5 py-3 text-sm font-medium" style={{ background: "#fff", color: "var(--brand)" }}>Ver demo en vivo</a>
+          <a href={waLink} target="_blank" rel="noreferrer" className="lp-btn-secondary rounded-lg px-5 py-3 text-sm font-medium">Hablar por WhatsApp</a>
+        </div>
+      </section>
+
+      <footer className="px-6 sm:px-10 py-6 text-center mono text-[11px]" style={{ color: "var(--brand-light)" }}>
+        © {new Date().getFullYear()} Croquis — Ciudad de Panamá
+      </footer>
+    </div>
+  );
+}
+
 export default function App() {
   const isRecovery = typeof window !== "undefined" && window.location.hash.includes("type=recovery");
   const isAdmin = typeof window !== "undefined" && window.location.pathname.startsWith("/admin");
+  const path = typeof window !== "undefined" ? window.location.pathname.replace(/^\/+|\/+$/g, "") : "";
   if (isRecovery) return <ResetPasswordScreen />;
-  return isAdmin ? <AdminPanel /> : <CroquisApp />;
+  if (isAdmin) return <AdminPanel />;
+  if (!path) return <LandingPage />;
+  return <CroquisApp />;
 }
