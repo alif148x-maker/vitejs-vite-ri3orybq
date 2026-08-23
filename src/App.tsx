@@ -1,6 +1,7 @@
 import { CartProvider } from "./context/CartContext";
 import Header from "./components/Header";
 import Hero from "./components/Hero";
+import Promo from "./components/Promo";
 import About from "./components/About";
 import Plans from "./components/Plans";
 import Catalog from "./components/Catalog";
@@ -16,6 +17,7 @@ export default function App() {
       <Header />
       <main>
         <Hero />
+        <Promo />
         <About />
         <Plans />
         <Catalog />

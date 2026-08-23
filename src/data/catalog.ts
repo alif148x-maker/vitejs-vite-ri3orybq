@@ -11,8 +11,9 @@ import imgDoggieTreats from "../assets/products/doggie-treats.jpg";
 import imgCanastita from "../assets/products/canastita.jpg";
 import imgBanderines from "../assets/products/banderines.jpg";
 import imgGorrito from "../assets/products/gorrito.jpg";
+import imgPromoSeptiembre from "../assets/products/promo-septiembre.jpg";
 
-export type Category = "planes" | "cakes" | "pupcakes" | "decor" | "treats";
+export type Category = "planes" | "cakes" | "pupcakes" | "decor" | "treats" | "promo";
 
 export interface Variant {
   id: string;
@@ -231,6 +232,18 @@ export const CATALOG: Product[] = [
     image: imgGorrito,
   },
 ];
+
+export const PROMO: Product = {
+  id: "promo-septiembre",
+  category: "promo",
+  name: "Promo Septiembre",
+  tagline: "Promo del mes",
+  price: 30,
+  image: imgPromoSeptiembre,
+  bullets: ["Mini Frosted Cake personalizado", "Banderines incluidos"],
+  hasFlavor: true,
+  hasColor: true,
+};
 
 export interface DeliveryTier {
   price: number;

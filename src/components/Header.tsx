@@ -4,6 +4,7 @@ import logo from "../assets/logo.jpg";
 import { useCart } from "../context/CartContext";
 
 const LINKS = [
+  { href: "#promo", label: "Promo" },
   { href: "#nosotros", label: "Nosotros" },
   { href: "#planes", label: "Planes" },
   { href: "#catalogo", label: "Catálogo" },

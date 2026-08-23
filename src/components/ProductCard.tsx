@@ -6,7 +6,7 @@ import { CAKE_COLORS, VEGETABLE_COLORS, FLAVORS, SHAPES } from "../data/catalog"
 const COLOR_OPTIONS = [...CAKE_COLORS, ...VEGETABLE_COLORS];
 import { useCart } from "../context/CartContext";
 
-export default function ProductCard({ product }: { product: Product }) {
+export default function ProductCard({ product, wide }: { product: Product; wide?: boolean }) {
   const { addLine } = useCart();
   const [variantId, setVariantId] = useState(product.variants?.[0]?.id ?? "");
   const [extrasOn, setExtrasOn] = useState<Record<string, boolean>>({});
@@ -69,7 +69,11 @@ export default function ProductCard({ product }: { product: Product }) {
 
   return (
     <div className="flex flex-col overflow-hidden rounded-3xl bg-white shadow-soft ring-1 ring-olive-200/60 transition hover:-translate-y-1 hover:shadow-lg">
-      <div className="relative aspect-[4/3] w-full overflow-hidden bg-gradient-to-br from-olive-100 to-blush-100">
+      <div
+        className={`relative w-full overflow-hidden bg-gradient-to-br from-olive-100 to-blush-100 ${
+          wide ? "aspect-[7/2]" : "aspect-[4/3]"
+        }`}
+      >
         {product.image ? (
           <img src={product.image} alt={product.name} className="h-full w-full object-cover" />
         ) : (
