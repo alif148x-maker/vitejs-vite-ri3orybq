@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<title>Actualizar barki-fur-pets-</title>
+<style>
+:root {
+  --ink: #22261f; --paper: #faf8f3; --paper-raised: #ffffff; --border: #ddd8c8;
+  --muted: #7c7562; --accent: #8a8055; --accent-strong: #6d6544;
+  --success: #3f7d4f; --success-bg: #e8f3ea; --error: #b5484a; --error-bg: #fbeceb;
+  --skip: #9a8f5c; --skip-bg: #f5f1e2;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ink: #f2efe6; --paper: #14160f; --paper-raised: #1d2018; --border: #34382b;
+    --muted: #a3a08d; --accent: #c7bd93; --accent-strong: #dcd6ba;
+    --success: #7fd696; --success-bg: #16281c; --error: #f29a9a; --error-bg: #2b1616;
+    --skip: #d8cf9c; --skip-bg: #26241a;
+  }
+}
+:root[data-theme="dark"] {
+  --ink: #f2efe6; --paper: #14160f; --paper-raised: #1d2018; --border: #34382b;
+  --muted: #a3a08d; --accent: #c7bd93; --accent-strong: #dcd6ba;
+  --success: #7fd696; --success-bg: #16281c; --error: #f29a9a; --error-bg: #2b1616;
+  --skip: #d8cf9c; --skip-bg: #26241a;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--paper); color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  min-height: 100vh; display: flex; justify-content: center; padding: 32px 16px 80px;
+}
+.wrap { width: 100%; max-width: 640px; }
+h1 { font-size: 1.5rem; font-weight: 700; margin: 0 0 4px; text-wrap: balance; }
+.sub { color: var(--muted); font-size: 0.95rem; margin: 0 0 24px; line-height: 1.5; }
+.card { background: var(--paper-raised); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin-bottom: 16px; }
+.card h2 { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin: 0 0 14px; font-weight: 600; }
+label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; }
+.token-row { display: flex; gap: 8px; }
+input[type="password"], input[type="text"] {
+  flex: 1; font: inherit; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.85rem; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--paper); color: var(--ink);
+}
+input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+.toggle-btn { border: 1px solid var(--border); background: var(--paper); color: var(--ink); border-radius: 8px; padding: 0 14px; font-size: 0.85rem; cursor: pointer; }
+.note { font-size: 0.8rem; color: var(--muted); margin: 10px 0 0; line-height: 1.5; }
+.run-btn { width: 100%; margin-top: 16px; padding: 13px; border-radius: 10px; border: none; background: var(--accent-strong); color: var(--paper-raised); font-size: 0.95rem; font-weight: 700; cursor: pointer; }
+.run-btn:disabled { opacity: 0.55; cursor: default; }
+.run-btn:not(:disabled):active { transform: translateY(1px); }
+.summary { display: flex; gap: 10px; flex-wrap: wrap; margin: 0 0 14px; }
+.pill { font-size: 0.78rem; font-weight: 700; padding: 5px 10px; border-radius: 999px; font-variant-numeric: tabular-nums; }
+.pill.ok { background: var(--success-bg); color: var(--success); }
+.pill.err { background: var(--error-bg); color: var(--error); }
+.pill.skip { background: var(--skip-bg); color: var(--skip); }
+#log { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 0.8rem; line-height: 1.7; max-height: 50vh; overflow-y: auto; overflow-x: auto; border-top: 1px solid var(--border); padding-top: 10px; }
+.row { display: flex; gap: 8px; align-items: baseline; white-space: pre; }
+.row .mark { flex-shrink: 0; width: 1.1em; }
+.row.ok .mark { color: var(--success); }
+.row.err { color: var(--error); } .row.err .mark { color: var(--error); }
+.row.skip { color: var(--skip); } .row.skip .mark { color: var(--skip); }
+.row.info { color: var(--muted); }
+.empty { color: var(--muted); font-size: 0.85rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Actualizar fotos y contenido</h1>
+  <p class="sub">Actualiza las 11 fotos de planes/catálogo y el contenido de <code>catalog.ts</code> y <code>About.tsx</code> en <strong>barki-fur-pets-</strong>. Corre desde tu navegador, tu token no pasa por Claude.</p>
+
+  <div class="card">
+    <h2>Paso 1 · Token</h2>
+    <label for="token">Personal access token (mismo de antes, o genera uno nuevo)</label>
+    <div class="token-row">
+      <input type="password" id="token" placeholder="github_pat_..." autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" />
+      <button class="toggle-btn" id="toggleToken" type="button">Ver</button>
+    </div>
+    <p class="note">Si el token anterior lo borraste, genera uno nuevo (Settings → Developer settings → Fine-grained tokens → Only select repositories → barki-fur-pets- → Contents: Read and write).</p>
+  </div>
+
+  <div class="card">
+    <h2>Paso 2 · Ejecutar</h2>
+    <button class="run-btn" id="runBtn" type="button">Actualizar todo</button>
+    <div class="summary" id="summary" style="margin-top:16px;"></div>
+    <div id="log"><p class="empty">El registro aparecerá aquí.</p></div>
+  </div>
+</div>
+
+<script>
+const REPO = "alif148x-maker/barki-fur-pets-";
+const BRANCH = "main";
+const API = "https://api.github.com/repos/" + REPO + "/contents/";
+
+const UPDATES = [["src/App.tsx", "aW1wb3J0IHsgQ2FydFByb3ZpZGVyIH0gZnJvbSAiLi9jb250ZXh0L0NhcnRDb250ZXh0IjsKaW1wb3J0IEhlYWRlciBmcm9tICIuL2NvbXBvbmVudHMvSGVhZGVyIjsKaW1wb3J0IEhlcm8gZnJvbSAiLi9jb21wb25lbnRzL0hlcm8iOwppbXBvcnQgUHJvbW8gZnJvbSAiLi9jb21wb25lbnRzL1Byb21vIjsKaW1wb3J0IEFib3V0IGZyb20gIi4vY29tcG9uZW50cy9BYm91dCI7CmltcG9ydCBQbGFucyBmcm9tICIuL2NvbXBvbmVudHMvUGxhbnMiOwppbXBvcnQgQ2F0YWxvZyBmcm9tICIuL2NvbXBvbmVudHMvQ2F0YWxvZyI7CmltcG9ydCBIb3dUb09yZGVyIGZyb20gIi4vY29tcG9uZW50cy9Ib3dUb09yZGVyIjsKaW1wb3J0IERlbGl2ZXJ5IGZyb20gIi4vY29tcG9uZW50cy9EZWxpdmVyeSI7CmltcG9ydCBGb290ZXIgZnJvbSAiLi9jb21wb25lbnRzL0Zvb3RlciI7CmltcG9ydCBDYXJ0RHJhd2VyIGZyb20gIi4vY29tcG9uZW50cy9DYXJ0RHJhd2VyIjsKaW1wb3J0IFdoYXRzQXBwRmxvYXQgZnJvbSAiLi9jb21wb25lbnRzL1doYXRzQXBwRmxvYXQiOwoKZXhwb3J0IGRlZmF1bHQgZnVuY3Rpb24gQXBwKCkgewogIHJldHVybiAoCiAgICA8Q2FydFByb3ZpZGVyPgogICAgICA8SGVhZGVyIC8+CiAgICAgIDxtYWluPgogICAgICAgIDxIZXJvIC8+CiAgICAgICAgPEFib3V0IC8+CiAgICAgICAgPFBsYW5zIC8+CiAgICAgICAgPEhvd1RvT3JkZXIgLz4KICAgICAgICA8UHJvbW8gLz4KICAgICAgICA8Q2F0YWxvZyAvPgogICAgICAgIDxEZWxpdmVyeSAvPgogICAgICA8L21haW4+CiAgICAgIDxGb290ZXIgLz4KICAgICAgPENhcnREcmF3ZXIgLz4KICAgICAgPFdoYXRzQXBwRmxvYXQgLz4KICAgIDwvQ2FydFByb3ZpZGVyPgogICk7Cn0K"], ["src/components/Header.tsx", "aW1wb3J0IHsgdXNlU3RhdGUgfSBmcm9tICJyZWFjdCI7CmltcG9ydCB7IE1lbnUsIFNob3BwaW5nQmFza2V0LCBYIH0gZnJvbSAibHVjaWRlLXJlYWN0IjsKaW1wb3J0IGxvZ28gZnJvbSAiLi4vYXNzZXRzL2xvZ28uanBnIjsKaW1wb3J0IHsgdXNlQ2FydCB9IGZyb20gIi4uL2NvbnRleHQvQ2FydENvbnRleHQiOwoKY29uc3QgTElOS1MgPSBbCiAgeyBocmVmOiAiI25vc290cm9zIiwgbGFiZWw6ICJOb3NvdHJvcyIgfSwKICB7IGhyZWY6ICIjcGxhbmVzIiwgbGFiZWw6ICJQbGFuZXMiIH0sCiAgeyBocmVmOiAiI3BlZGlyIiwgbGFiZWw6ICJDw7NtbyBwZWRpciIgfSwKICB7IGhyZWY6ICIjcHJvbW8iLCBsYWJlbDogIlByb21vIiB9LAogIHsgaHJlZjogIiNjYXRhbG9nbyIsIGxhYmVsOiAiQ2F0w6Fsb2dvIiB9LAogIHsgaHJlZjogIiNkZWxpdmVyeSIsIGxhYmVsOiAiRGVsaXZlcnkiIH0sCl07CgpleHBvcnQgZGVmYXVsdCBmdW5jdGlvbiBIZWFkZXIoKSB7CiAgY29uc3QgeyBjb3VudCwgb3BlbiB9ID0gdXNlQ2FydCgpOwogIGNvbnN0IFttZW51T3Blbiwgc2V0TWVudU9wZW5dID0gdXNlU3RhdGUoZmFsc2UpOwoKICByZXR1cm4gKAogICAgPGhlYWRlciBjbGFzc05hbWU9InN0aWNreSB0b3AtMCB6LTQwIGJvcmRlci1iIGJvcmRlci1vbGl2ZS0yMDAvNzAgYmctY3JlYW0vOTAgYmFja2Ryb3AtYmx1ciI+CiAgICAgIDxkaXYgY2xhc3NOYW1lPSJteC1hdXRvIGZsZXggbWF4LXctNnhsIGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWJldHdlZW4gcHgtNCBweS0zIHNtOnB4LTYiPgogICAgICAgIDxhIGhyZWY9IiN0b3AiIGNsYXNzTmFtZT0iZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIiPgogICAgICAgICAgPGltZyBzcmM9e2xvZ299IGFsdD0iQmFya2kiIGNsYXNzTmFtZT0iaC0xMSB3LTExIHJvdW5kZWQtZnVsbCBvYmplY3QtY292ZXIgc2hhZG93LXNvZnQiIC8+CiAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9ImZvbnQtZGlzcGxheSB0ZXh0LXhsIGZvbnQtYm9sZCB0ZXh0LW9saXZlLTgwMCI+CiAgICAgICAgICAgIGJhcmtpIDxzcGFuIGNsYXNzTmFtZT0idGV4dC1ibHVzaC00MDAiPmZ1ciBwZXRzPC9zcGFuPgogICAgICAgICAgPC9zcGFuPgogICAgICAgIDwvYT4KCiAgICAgICAgPG5hdiBjbGFzc05hbWU9ImhpZGRlbiBpdGVtcy1jZW50ZXIgZ2FwLTYgbWQ6ZmxleCI+CiAgICAgICAgICB7TElOS1MubWFwKChsKSA9PiAoCiAgICAgICAgICAgIDxhIGtleT17bC5ocmVmfSBocmVmPXtsLmhyZWZ9IGNsYXNzTmFtZT0idGV4dC1zbSBmb250LXNlbWlib2xkIHRleHQtb2xpdmUtNjAwIHRyYW5zaXRpb24gaG92ZXI6dGV4dC1ibHVzaC01MDAiPgogICAgICAgICAgICAgIHtsLmxhYmVsfQogICAgICAgICAgICA8L2E+CiAgICAgICAgICApKX0KICAgICAgICA8L25hdj4KCiAgICAgICAgPGRpdiBjbGFzc05hbWU9ImZsZXggaXRlbXMtY2VudGVyIGdhcC0yIj4KICAgICAgICAgIDxidXR0b24KICAgICAgICAgICAgb25DbGljaz17b3Blbn0KICAgICAgICAgICAgY2xhc3NOYW1lPSJyZWxhdGl2ZSBmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMiByb3VuZGVkLWZ1bGwgYmctb2xpdmUtNTAwIHB4LTQgcHktMiB0ZXh0LXNtIGZvbnQtYm9sZCB0ZXh0LXdoaXRlIHNoYWRvdy1zb2Z0IHRyYW5zaXRpb24gaG92ZXI6Ymctb2xpdmUtNjAwIgogICAgICAgICAgPgogICAgICAgICAgICA8U2hvcHBpbmdCYXNrZXQgc2l6ZT17MTh9IC8+CiAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT0iaGlkZGVuIHNtOmlubGluZSI+TWkgcGVkaWRvPC9zcGFuPgogICAgICAgICAgICB7Y291bnQgPiAwICYmICgKICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9ImFic29sdXRlIC1yaWdodC0yIC10b3AtMiBmbGV4IGgtNSB3LTUgaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIHJvdW5kZWQtZnVsbCBiZy1ibHVzaC00MDAgdGV4dC14cyBmb250LWJvbGQgdGV4dC13aGl0ZSI+CiAgICAgICAgICAgICAgICB7Y291bnR9CiAgICAgICAgICAgICAgPC9zcGFuPgogICAgICAgICAgICApfQogICAgICAgICAgPC9idXR0b24+CiAgICAgICAgICA8YnV0dG9uCiAgICAgICAgICAgIGNsYXNzTmFtZT0icm91bmRlZC1mdWxsIGJvcmRlciBib3JkZXItb2xpdmUtMjAwIHAtMiB0ZXh0LW9saXZlLTYwMCBtZDpoaWRkZW4iCiAgICAgICAgICAgIG9uQ2xpY2s9eygpID0+IHNldE1lbnVPcGVuKCh2KSA9PiAhdil9CiAgICAgICAgICAgIGFyaWEtbGFiZWw9IkFicmlyIG1lbsO6IgogICAgICAgICAgPgogICAgICAgICAgICB7bWVudU9wZW4gPyA8WCBzaXplPXsyMH0gLz4gOiA8TWVudSBzaXplPXsyMH0gLz59CiAgICAgICAgICA8L2J1dHRvbj4KICAgICAgICA8L2Rpdj4KICAgICAgPC9kaXY+CgogICAgICB7bWVudU9wZW4gJiYgKAogICAgICAgIDxuYXYgY2xhc3NOYW1lPSJmbGV4IGZsZXgtY29sIGdhcC0xIGJvcmRlci10IGJvcmRlci1vbGl2ZS0yMDAvNzAgYmctY3JlYW0gcHgtNCBwYi00IHB0LTIgbWQ6aGlkZGVuIj4KICAgICAgICAgIHtMSU5LUy5tYXAoKGwpID0+ICgKICAgICAgICAgICAgPGEKICAgICAgICAgICAgICBrZXk9e2wuaHJlZn0KICAgICAgICAgICAgICBocmVmPXtsLmhyZWZ9CiAgICAgICAgICAgICAgb25DbGljaz17KCkgPT4gc2V0TWVudU9wZW4oZmFsc2UpfQogICAgICAgICAgICAgIGNsYXNzTmFtZT0icm91bmRlZC1sZyBweC0yIHB5LTIgdGV4dC1zbSBmb250LXNlbWlib2xkIHRleHQtb2xpdmUtNzAwIGhvdmVyOmJnLW9saXZlLTEwMCIKICAgICAgICAgICAgPgogICAgICAgICAgICAgIHtsLmxhYmVsfQogICAgICAgICAgICA8L2E+CiAgICAgICAgICApKX0KICAgICAgICA8L25hdj4KICAgICAgKX0KICAgIDwvaGVhZGVyPgogICk7Cn0K"]];
+
+const tokenInput = document.getElementById("token");
+document.getElementById("toggleToken").addEventListener("click", () => {
+  const isPw = tokenInput.type === "password";
+  tokenInput.type = isPw ? "text" : "password";
+  document.getElementById("toggleToken").textContent = isPw ? "Ocultar" : "Ver";
+});
+
+const logEl = document.getElementById("log");
+const summaryEl = document.getElementById("summary");
+let counts = { ok: 0, err: 0, skip: 0 };
+
+function renderSummary() {
+  summaryEl.innerHTML =
+    '<span class="pill ok">' + counts.ok + ' listos</span>' +
+    '<span class="pill skip">' + counts.skip + ' omitidos</span>' +
+    '<span class="pill err">' + counts.err + ' errores</span>';
+}
+
+function log(kind, text) {
+  if (logEl.querySelector(".empty")) logEl.innerHTML = "";
+  const row = document.createElement("div");
+  row.className = "row " + kind;
+  const mark = kind === "ok" ? "✓" : kind === "err" ? "✗" : kind === "skip" ? "•" : "·";
+  row.innerHTML = '<span class="mark">' + mark + "</span><span>" + text.replace(/</g, "&lt;") + "</span>";
+  logEl.appendChild(row);
+  logEl.scrollTop = logEl.scrollHeight;
+  if (kind === "ok") counts.ok++;
+  if (kind === "err") counts.err++;
+  if (kind === "skip") counts.skip++;
+  renderSummary();
+}
+
+async function gh(path, opts = {}, token, query = "") {
+  const url = API + encodeURIComponent(path).replace(/%2F/g, "/") + query;
+  const res = await fetch(url, {
+    ...opts,
+    cache: "no-store",
+    headers: {
+      Authorization: "Bearer " + token,
+      Accept: "application/vnd.github+json",
+      "If-None-Match": "",
+      ...(opts.headers || {}),
+    },
+  });
+  return res;
+}
+
+async function getFile(path, token) {
+  const res = await gh(path, {}, token, "?ref=" + encodeURIComponent(BRANCH));
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error("GET " + path + " -> " + res.status);
+  return res.json();
+}
+
+async function putFile(path, contentB64, message, token, sha) {
+  const body = { message, content: contentB64, branch: BRANCH };
+  if (sha) body.sha = sha;
+  const res = await gh(path, { method: "PUT", body: JSON.stringify(body) }, token);
+  if (!res.ok) {
+    const t = await res.text();
+    throw new Error("PUT " + path + " -> " + res.status + " " + t.slice(0, 200));
+  }
+  return res.json();
+}
+
+async function runUpdate(path, contentB64, token) {
+  const existing = await getFile(path, token);
+  await putFile(path, contentB64, "Actualizar " + path, token, existing ? existing.sha : undefined);
+  log("ok", (existing ? "Actualizado " : "Creado ") + path);
+}
+
+document.getElementById("runBtn").addEventListener("click", async () => {
+  const token = tokenInput.value.trim();
+  if (!token) { alert("Pega tu token primero."); return; }
+  const btn = document.getElementById("runBtn");
+  btn.disabled = true;
+  btn.textContent = "Trabajando...";
+  counts = { ok: 0, err: 0, skip: 0 };
+  logEl.innerHTML = "";
+  renderSummary();
+
+  log("info", "Verificando acceso a " + REPO + "...");
+  try {
+    const test = await gh("", {}, token);
+    if (!test.ok) throw new Error("No se pudo acceder al repositorio (código " + test.status + "). Revisa el token.");
+  } catch (e) {
+    log("err", String(e.message || e));
+    btn.disabled = false;
+    btn.textContent = "Actualizar todo";
+    return;
+  }
+
+  log("info", "Actualizando " + UPDATES.length + " archivos...");
+  for (const [path, b64] of UPDATES) {
+    try {
+      await runUpdate(path, b64, token);
+    } catch (e) {
+      log("err", path + " : " + String(e.message || e));
+    }
+  }
+
+  log("info", "Listo. " + counts.ok + " ok, " + counts.skip + " omitidos, " + counts.err + " errores.");
+  btn.disabled = false;
+  btn.textContent = "Actualizar todo";
+});
+</script>
+</body>
+</html>
