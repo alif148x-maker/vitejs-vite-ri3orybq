@@ -17,11 +17,11 @@ export default function App() {
       <Header />
       <main>
         <Hero />
-        <Promo />
         <About />
         <Plans />
-        <Catalog />
         <HowToOrder />
+        <Promo />
+        <Catalog />
         <Delivery />
       </main>
       <Footer />

@@ -4,11 +4,11 @@ import logo from "../assets/logo.jpg";
 import { useCart } from "../context/CartContext";
 
 const LINKS = [
-  { href: "#promo", label: "Promo" },
   { href: "#nosotros", label: "Nosotros" },
   { href: "#planes", label: "Planes" },
-  { href: "#catalogo", label: "Catálogo" },
   { href: "#pedir", label: "Cómo pedir" },
+  { href: "#promo", label: "Promo" },
+  { href: "#catalogo", label: "Catálogo" },
   { href: "#delivery", label: "Delivery" },
 ];
 
