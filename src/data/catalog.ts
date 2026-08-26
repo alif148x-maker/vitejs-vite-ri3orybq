@@ -1,5 +1,4 @@
 import imgPlanSilver from "../assets/products/plan-silver.jpg";
-import imgPlanSilverFrosted from "../assets/products/plan-silver-frosted.jpg";
 import imgPlanGold from "../assets/products/plan-gold.jpg";
 import imgPlanDeluxe from "../assets/products/plan-deluxe.jpg";
 import imgPupcake from "../assets/products/pupcake.jpg";
@@ -91,7 +90,7 @@ export const PLANS: Product[] = [
     category: "planes",
     name: "Barki Silver",
     price: 45,
-    images: [imgPlanSilverFrosted, imgPlanSilver],
+    images: [imgPlanSilver],
     bullets: [
       'Cake "4" 2 capas (6 porciones grandes)',
       "Incluye 3 toppers personalizados",
@@ -257,7 +256,7 @@ export const CATALOG: Product[] = [
     category: "decor",
     name: "Gorrito personalizado",
     price: 2.75,
-    images: [imgGorritoTallas, imgGorritoHat],
+    images: [imgGorritoHat, imgGorritoTallas],
     choice: { label: "Talla", options: ["XS", "S", "L"] },
   },
   {
