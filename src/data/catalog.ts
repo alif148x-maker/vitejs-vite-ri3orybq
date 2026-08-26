@@ -1,4 +1,5 @@
 import imgPlanSilver from "../assets/products/plan-silver.jpg";
+import imgPlanSilverFrosted from "../assets/products/plan-silver-frosted.jpg";
 import imgPlanGold from "../assets/products/plan-gold.jpg";
 import imgPlanDeluxe from "../assets/products/plan-deluxe.jpg";
 import imgPupcake from "../assets/products/pupcake.jpg";
@@ -11,10 +12,7 @@ import imgDoggieTreats from "../assets/products/doggie-treats.jpg";
 import imgDoggieTreatsSky from "../assets/products/doggie-treats-sky.jpg";
 import imgCanastita from "../assets/products/canastita.jpg";
 import imgBanderines from "../assets/products/banderines.jpg";
-import imgGorrito from "../assets/products/gorrito.jpg";
-import imgGorritoXS from "../assets/products/gorrito-size-xs.jpg";
-import imgGorritoS from "../assets/products/gorrito-size-s.jpg";
-import imgGorritoL from "../assets/products/gorrito-size-l.jpg";
+import imgGorritoTallas from "../assets/products/gorrito-tallas.jpg";
 import imgPromoSeptiembre from "../assets/products/promo-septiembre.jpg";
 import imgNakedStyle4 from "../assets/products/naked-style-4-3capas.jpg";
 import imgGatoMiniPupcake1 from "../assets/products/gato-mini-pupcake-1.jpg";
@@ -92,7 +90,7 @@ export const PLANS: Product[] = [
     category: "planes",
     name: "Barki Silver",
     price: 45,
-    images: [imgPlanSilver],
+    images: [imgPlanSilver, imgPlanSilverFrosted],
     bullets: [
       'Cake "4" 2 capas (6 porciones grandes)',
       "Incluye 3 toppers personalizados",
@@ -258,7 +256,7 @@ export const CATALOG: Product[] = [
     category: "decor",
     name: "Gorrito personalizado",
     price: 2.75,
-    images: [imgGorrito, imgGorritoXS, imgGorritoS, imgGorritoL],
+    images: [imgGorritoTallas],
     choice: { label: "Talla", options: ["XS", "S", "L"] },
   },
   {
