@@ -104,21 +104,15 @@ export default function ProductCard({ product, wide }: { product: Product; wide?
 
   return (
     <div className="flex flex-col overflow-hidden rounded-3xl bg-white shadow-soft ring-1 ring-olive-200/60 transition hover:-translate-y-1 hover:shadow-lg">
+      {images.length > 0 && (
       <div
         className={`group relative w-full overflow-hidden bg-gradient-to-br from-olive-100 to-blush-100 ${
-          wide ? "aspect-[7/2]" : "aspect-[4/3]"
+          wide ? "aspect-[2/1]" : "aspect-[4/3]"
         }`}
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
       >
-        {images.length > 0 ? (
-          <img src={images[imgIndex]} alt={product.name} className="h-full w-full object-cover" />
-        ) : (
-          <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-olive-400 paw-bg">
-            <PawPrint size={36} strokeWidth={1.5} />
-            <span className="font-display text-sm">{product.quoteOnly ? "Cuéntanos tu idea" : "Foto próximamente"}</span>
-          </div>
-        )}
+        <img src={images[imgIndex]} alt={product.name} className="h-full w-full object-contain" />
         {images.length > 1 && (
           <>
             <button
@@ -158,8 +152,17 @@ export default function ProductCard({ product, wide }: { product: Product; wide?
           </span>
         )}
       </div>
+      )}
 
       <div className="flex flex-1 flex-col gap-3 p-5">
+        {images.length === 0 && product.quoteOnly && (
+          <div className="flex items-center gap-3 rounded-2xl bg-gradient-to-br from-olive-100 to-blush-100 px-4 py-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/70 text-blush-500">
+              <PawPrint size={20} strokeWidth={1.5} />
+            </span>
+            <span className="font-display text-sm text-olive-700">Cuéntanos tu idea y te armamos el diseño</span>
+          </div>
+        )}
         <h3 className="font-display text-lg font-bold text-olive-800">{product.name}</h3>
 
         {product.bullets && (
