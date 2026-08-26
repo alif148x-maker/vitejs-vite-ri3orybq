@@ -9,6 +9,7 @@ const LINKS = [
   { href: "#pedir", label: "Cómo pedir" },
   { href: "#promo", label: "Promo" },
   { href: "#catalogo", label: "Catálogo" },
+  { href: "#cotiza", label: "Cotiza tu cake" },
   { href: "#delivery", label: "Delivery" },
 ];
 

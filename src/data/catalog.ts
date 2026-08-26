@@ -8,12 +8,19 @@ import imgFrostedCake4 from "../assets/products/frosted-cake-4.jpg";
 import imgBoneCake from "../assets/products/bone-cake.jpg";
 import imgMiniPupcakes from "../assets/products/mini-pupcakes.jpg";
 import imgDoggieTreats from "../assets/products/doggie-treats.jpg";
+import imgDoggieTreatsSky from "../assets/products/doggie-treats-sky.jpg";
 import imgCanastita from "../assets/products/canastita.jpg";
 import imgBanderines from "../assets/products/banderines.jpg";
 import imgGorrito from "../assets/products/gorrito.jpg";
+import imgGorritoXS from "../assets/products/gorrito-size-xs.jpg";
+import imgGorritoS from "../assets/products/gorrito-size-s.jpg";
+import imgGorritoL from "../assets/products/gorrito-size-l.jpg";
 import imgPromoSeptiembre from "../assets/products/promo-septiembre.jpg";
+import imgNakedStyle4 from "../assets/products/naked-style-4-3capas.jpg";
+import imgGatoMiniPupcake1 from "../assets/products/gato-mini-pupcake-1.jpg";
+import imgGatoMiniPupcake2 from "../assets/products/gato-mini-pupcake-2.jpg";
 
-export type Category = "planes" | "cakes" | "pupcakes" | "decor" | "treats" | "promo";
+export type Category = "planes" | "cakes" | "pupcakes" | "decor" | "treats" | "promo" | "gatos";
 
 export interface Variant {
   id: string;
@@ -27,6 +34,11 @@ export interface Extra {
   price: number;
 }
 
+export interface Choice {
+  label: string;
+  options: string[];
+}
+
 export interface Product {
   id: string;
   category: Category;
@@ -38,9 +50,13 @@ export interface Product {
   variants?: Variant[];
   extras?: Extra[];
   hasFlavor?: boolean;
+  flavorOptions?: string[];
   hasColor?: boolean;
   hasShape?: boolean;
-  image?: string;
+  hasNote?: boolean;
+  quoteOnly?: boolean;
+  choice?: Choice;
+  images?: string[];
   note?: string;
 }
 
@@ -50,6 +66,8 @@ export const FLAVORS = [
   "Peanut Butter",
   "Manzana + Peanut Butter",
 ];
+
+export const CAT_FLAVORS = ["Pollo", "Atún"];
 
 export const CAKE_COLORS = [
   { name: "Blanco", hex: "#FBF7EE" },
@@ -74,7 +92,7 @@ export const PLANS: Product[] = [
     category: "planes",
     name: "Barki Silver",
     price: 45,
-    image: imgPlanSilver,
+    images: [imgPlanSilver],
     bullets: [
       'Cake "4" 2 capas (6 porciones grandes)',
       "Incluye 3 toppers personalizados",
@@ -82,6 +100,7 @@ export const PLANS: Product[] = [
       "Gorrito personalizado",
       "Delivery incluido",
     ],
+    choice: { label: "Tipo de mini cake", options: ["Mini Naked Style", "Mini Frosted Cake"] },
     hasFlavor: true,
     hasColor: true,
   },
@@ -90,7 +109,7 @@ export const PLANS: Product[] = [
     category: "planes",
     name: "Barki Gold",
     price: 55,
-    image: imgPlanGold,
+    images: [imgPlanGold],
     bullets: [
       'Cake "4" 3 capas (12 porciones)',
       "Incluye 3 toppers personalizados",
@@ -106,7 +125,7 @@ export const PLANS: Product[] = [
     category: "planes",
     name: "Barki Deluxe",
     price: 70,
-    image: imgPlanDeluxe,
+    images: [imgPlanDeluxe],
     tagline: "El más popular",
     bullets: [
       'Cake "7" en forma de hueso, 2 capas (12-16 porciones)',
@@ -128,7 +147,7 @@ export const CATALOG: Product[] = [
     name: "Pupcake",
     tagline: "4 porciones pequeñas",
     price: 15,
-    image: imgPupcake,
+    images: [imgPupcake],
     bullets: ["Incluye 2 toppers", "Mini galleta con el nombre de tu mascota"],
     hasFlavor: true,
     hasColor: true,
@@ -139,9 +158,20 @@ export const CATALOG: Product[] = [
     name: 'Mini Cake "4" — Naked Style',
     tagline: "2 capas · aprox. 6 porciones grandes",
     price: 25,
-    image: imgMiniCakeNaked,
+    images: [imgMiniCakeNaked],
     bullets: ["Toppers personalizados", "Galleta personalizada con el nombre de tu mascota"],
     extras: [{ id: "frosted", label: "Cambiar a frosted", price: 5 }],
+    hasFlavor: true,
+    hasColor: true,
+  },
+  {
+    id: "naked-style-4-3capas",
+    category: "cakes",
+    name: '(Nuevo) Naked Style "4" — 3 capas',
+    tagline: "3 capas · incluye toppers",
+    price: 35,
+    images: [imgNakedStyle4],
+    bullets: ["Incluye toppers", "Galleta personalizada con el nombre de tu mascota"],
     hasFlavor: true,
     hasColor: true,
   },
@@ -151,7 +181,7 @@ export const CATALOG: Product[] = [
     name: 'Mini Cake "4" — Frosted',
     tagline: "2 capas · aprox. 6 porciones grandes",
     price: 30,
-    image: imgMiniCakeFrosted,
+    images: [imgMiniCakeFrosted],
     bullets: ["Nombre o frase escrita en frosting o toppers personalizados"],
     hasFlavor: true,
     hasColor: true,
@@ -161,10 +191,9 @@ export const CATALOG: Product[] = [
     category: "cakes",
     name: 'Frosted Cake "4"',
     tagline: "3 capas · aprox. 12 porciones",
-    price: 35,
-    priceNote: "desde",
-    image: imgFrostedCake4,
-    bullets: ["Incluye toppers", "El precio final depende de la complejidad del diseño (hasta $40)"],
+    price: 40,
+    images: [imgFrostedCake4],
+    bullets: ["Incluye toppers"],
     hasFlavor: true,
     hasColor: true,
   },
@@ -174,7 +203,7 @@ export const CATALOG: Product[] = [
     name: "Bone Cake",
     tagline: "2 capas · aprox. 12-16 porciones",
     price: 40,
-    image: imgBoneCake,
+    images: [imgBoneCake],
     bullets: ["Toppers personalizados", "Galleta personalizada con el nombre de tu mascota"],
     hasFlavor: true,
     hasColor: true,
@@ -184,7 +213,7 @@ export const CATALOG: Product[] = [
     category: "pupcakes",
     name: "Mini Pupcakes",
     tagline: "Decorados con el nombre de tu mascota",
-    image: imgMiniPupcakes,
+    images: [imgMiniPupcakes],
     variants: [
       { id: "x6", label: "6 mini cupcakes", price: 15 },
       { id: "x12", label: "12 mini cupcakes", price: 25 },
@@ -199,7 +228,7 @@ export const CATALOG: Product[] = [
     category: "treats",
     name: "Doggie Treats",
     tagline: "Galletas horneadas, personalizadas con el nombre de tu mascota",
-    image: imgDoggieTreats,
+    images: [imgDoggieTreats, imgDoggieTreatsSky],
     variants: [
       { id: "mini12", label: "12 treats mini", price: 10 },
       { id: "grande12", label: "12 treats grande", price: 12 },
@@ -213,7 +242,7 @@ export const CATALOG: Product[] = [
     name: "Canastita personalizada",
     tagline: "Incluye 1 galleta con el nombre de tu mascota + 1 pelota",
     price: 4.75,
-    image: imgCanastita,
+    images: [imgCanastita],
     priceNote: "c/u",
     note: "¿Quieres un set completo? Cotiza por WhatsApp.",
   },
@@ -222,14 +251,26 @@ export const CATALOG: Product[] = [
     category: "decor",
     name: "Banderines personalizados",
     price: 8,
-    image: imgBanderines,
+    images: [imgBanderines],
   },
   {
     id: "gorrito",
     category: "decor",
     name: "Gorrito personalizado",
     price: 2.75,
-    image: imgGorrito,
+    images: [imgGorrito, imgGorritoXS, imgGorritoS, imgGorritoL],
+    choice: { label: "Talla", options: ["XS", "S", "L"] },
+  },
+  {
+    id: "gato-mini-pupcake",
+    category: "gatos",
+    name: "Mini Pupcake para gatos",
+    tagline: "Tamaño aproximado",
+    price: 8,
+    images: [imgGatoMiniPupcake2, imgGatoMiniPupcake1],
+    bullets: ["Ingredientes: comida de gato, huevo y harina de avena", "Frosting: queso crema y Catit creamy"],
+    hasFlavor: true,
+    flavorOptions: CAT_FLAVORS,
   },
 ];
 
@@ -239,10 +280,21 @@ export const PROMO: Product = {
   name: "Promo Septiembre",
   tagline: "Promo del mes",
   price: 30,
-  image: imgPromoSeptiembre,
+  images: [imgPromoSeptiembre],
   bullets: ["Mini Frosted Cake personalizado", "Banderines incluidos"],
   hasFlavor: true,
   hasColor: true,
+};
+
+export const CUSTOM_QUOTE: Product = {
+  id: "cotiza-tu-cake",
+  category: "cakes",
+  name: "Cotiza tu cake",
+  tagline: "Diseño personalizado",
+  priceNote: "Se cotiza según diseño",
+  quoteOnly: true,
+  bullets: ["Cuéntanos la forma o diseño que imaginas para tu peludito", "Te confirmamos el precio por WhatsApp"],
+  hasNote: true,
 };
 
 export interface DeliveryTier {

@@ -5,6 +5,7 @@ import Promo from "./components/Promo";
 import About from "./components/About";
 import Plans from "./components/Plans";
 import Catalog from "./components/Catalog";
+import CustomQuote from "./components/CustomQuote";
 import HowToOrder from "./components/HowToOrder";
 import Delivery from "./components/Delivery";
 import Footer from "./components/Footer";
@@ -22,6 +23,7 @@ export default function App() {
         <HowToOrder />
         <Promo />
         <Catalog />
+        <CustomQuote />
         <Delivery />
       </main>
       <Footer />
