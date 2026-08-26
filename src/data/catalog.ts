@@ -91,7 +91,7 @@ export const PLANS: Product[] = [
     category: "planes",
     name: "Barki Silver",
     price: 45,
-    images: [imgPlanSilver, imgPlanSilverFrosted],
+    images: [imgPlanSilverFrosted, imgPlanSilver],
     bullets: [
       'Cake "4" 2 capas (6 porciones grandes)',
       "Incluye 3 toppers personalizados",
