@@ -13,6 +13,7 @@ import imgDoggieTreatsSky from "../assets/products/doggie-treats-sky.jpg";
 import imgCanastita from "../assets/products/canastita.jpg";
 import imgBanderines from "../assets/products/banderines.jpg";
 import imgGorritoTallas from "../assets/products/gorrito-tallas.jpg";
+import imgGorritoHat from "../assets/products/gorrito-hat.jpg";
 import imgPromoSeptiembre from "../assets/products/promo-septiembre.jpg";
 import imgNakedStyle4 from "../assets/products/naked-style-4-3capas.jpg";
 import imgGatoMiniPupcake1 from "../assets/products/gato-mini-pupcake-1.jpg";
@@ -256,7 +257,7 @@ export const CATALOG: Product[] = [
     category: "decor",
     name: "Gorrito personalizado",
     price: 2.75,
-    images: [imgGorritoTallas],
+    images: [imgGorritoTallas, imgGorritoHat],
     choice: { label: "Talla", options: ["XS", "S", "L"] },
   },
   {
