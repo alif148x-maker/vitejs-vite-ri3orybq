@@ -65,6 +65,7 @@ export default function ProductCard({ product, wide }: { product: Product; wide?
   function handleAdd() {
     const variantLabel = product.variants?.find((v) => v.id === variantId)?.label;
     const extraLabels = product.extras?.filter((e) => extrasOn[e.id]).map((e) => e.label) ?? [];
+    const noteVisible = product.hasNote && (!product.choice?.noteOn || choiceValue === product.choice.noteOn);
     const detailParts = [
       variantLabel,
       ...extraLabels,
@@ -72,7 +73,7 @@ export default function ProductCard({ product, wide }: { product: Product; wide?
       product.hasColor && colors.length ? `colores: ${colors.join(" y ")}` : null,
       product.hasShape ? `forma: ${shape}` : null,
       product.choice ? `${product.choice.label.toLowerCase()}: ${choiceValue}` : null,
-      product.hasNote && note.trim() ? `nota: ${note.trim()}` : null,
+      noteVisible && note.trim() ? `nota: ${note.trim()}` : null,
     ].filter(Boolean) as string[];
 
     const key = [
@@ -83,7 +84,7 @@ export default function ProductCard({ product, wide }: { product: Product; wide?
       colors.join("-"),
       product.hasShape ? shape : "",
       product.choice ? choiceValue : "",
-      product.hasNote ? note.trim() : "",
+      noteVisible ? note.trim() : "",
     ]
       .filter(Boolean)
       .join("::");
@@ -294,7 +295,7 @@ export default function ProductCard({ product, wide }: { product: Product; wide?
           </div>
         )}
 
-        {product.hasNote && (
+        {product.hasNote && (!product.choice?.noteOn || choiceValue === product.choice.noteOn) && (
           <div>
             <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-olive-500">
               Notas / diseño deseado

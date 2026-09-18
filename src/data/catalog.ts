@@ -36,6 +36,7 @@ export interface Extra {
 export interface Choice {
   label: string;
   options: string[];
+  noteOn?: string;
 }
 
 export interface Product {
@@ -116,6 +117,7 @@ export const PLANS: Product[] = [
       "Gorrito personalizado",
       "Delivery incluido",
     ],
+    choice: { label: "Tipo de cake", options: ["Naked Style", "Frosted"] },
     hasFlavor: true,
     hasColor: true,
   },
@@ -246,6 +248,8 @@ export const CATALOG: Product[] = [
     price: 4.75,
     images: [imgCanastita],
     priceNote: "c/u",
+    choice: { label: "Tema", options: ["Sin tema", "Con tema"], noteOn: "Con tema" },
+    hasNote: true,
     note: "¿Quieres un set completo? Cotiza por WhatsApp.",
   },
   {
