@@ -7,6 +7,7 @@ import imgMiniCakeFrosted from "../assets/products/mini-cake-frosted.jpg";
 import imgFrostedCake4 from "../assets/products/frosted-cake-4.jpg";
 import imgBoneCake from "../assets/products/bone-cake.jpg";
 import imgMiniPupcakes from "../assets/products/mini-pupcakes.jpg";
+import imgMiniPupcakeOreo from "../assets/products/mini-pupcake-oreo.jpg";
 import imgDoggieTreats from "../assets/products/doggie-treats.jpg";
 import imgDoggieTreatsSky from "../assets/products/doggie-treats-sky.jpg";
 import imgCanastita from "../assets/products/canastita.jpg";
@@ -183,6 +184,7 @@ export const CATALOG: Product[] = [
     bullets: ["Nombre o frase escrita en frosting o toppers personalizados"],
     hasFlavor: true,
     hasColor: true,
+    choice: { label: "Personalización", options: ["Nombre o frase", "Toppers"] },
   },
   {
     id: "frosted-cake-4",
@@ -194,6 +196,7 @@ export const CATALOG: Product[] = [
     bullets: ["Incluye toppers"],
     hasFlavor: true,
     hasColor: true,
+    choice: { label: "Personalización", options: ["Nombre o frase", "Toppers"] },
   },
   {
     id: "bone-cake",
@@ -211,7 +214,7 @@ export const CATALOG: Product[] = [
     category: "pupcakes",
     name: "Mini Pupcakes",
     tagline: "Decorados con el nombre de tu mascota",
-    images: [imgMiniPupcakes],
+    images: [imgMiniPupcakes, imgMiniPupcakeOreo],
     variants: [
       { id: "x6", label: "6 mini cupcakes", price: 15 },
       { id: "x12", label: "12 mini cupcakes", price: 25 },
@@ -219,6 +222,7 @@ export const CATALOG: Product[] = [
     ],
     hasFlavor: true,
     hasColor: true,
+    choice: { label: "Topper", options: ["Carita de perrito", "Treat mini personalizado"] },
     note: "¿Necesitas otra cantidad? Cotiza tu set por WhatsApp.",
   },
   {
