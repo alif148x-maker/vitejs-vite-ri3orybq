@@ -52,7 +52,9 @@ export default function ProductCard({ product, wide }: { product: Product; wide?
     return product.extras.reduce((sum, e) => (extrasOn[e.id] ? sum + e.price : sum), 0);
   }, [product.extras, extrasOn]);
 
-  const unitPrice = basePrice + extrasPrice;
+  const choicePrice = product.choice?.optionPrices?.[choiceValue] ?? 0;
+
+  const unitPrice = basePrice + extrasPrice + choicePrice;
 
   function toggleColor(name: string) {
     setColors((prev) => {
@@ -110,6 +112,7 @@ export default function ProductCard({ product, wide }: { product: Product; wide?
         className={`group relative w-full overflow-hidden bg-gradient-to-br from-olive-100 to-blush-100 ${
           wide ? "aspect-[2/1]" : "aspect-[4/3]"
         }`}
+        style={{ touchAction: "pan-y" }}
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
       >
@@ -280,17 +283,21 @@ export default function ProductCard({ product, wide }: { product: Product; wide?
               {product.choice.label}
             </label>
             <div className="flex flex-wrap gap-2">
-              {product.choice.options.map((o) => (
-                <button
-                  key={o}
-                  onClick={() => setChoiceValue(o)}
-                  className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${
-                    choiceValue === o ? "border-olive-500 bg-olive-500 text-white" : "border-olive-200 text-olive-600"
-                  }`}
-                >
-                  {o}
-                </button>
-              ))}
+              {product.choice.options.map((o) => {
+                const extra = product.choice?.optionPrices?.[o];
+                return (
+                  <button
+                    key={o}
+                    onClick={() => setChoiceValue(o)}
+                    className={`rounded-full border px-3 py-1 text-xs font-semibold transition ${
+                      choiceValue === o ? "border-olive-500 bg-olive-500 text-white" : "border-olive-200 text-olive-600"
+                    }`}
+                  >
+                    {o}
+                    {extra ? ` (+$${extra.toFixed(2)})` : ""}
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}

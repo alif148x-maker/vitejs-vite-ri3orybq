@@ -18,8 +18,13 @@ import imgPromoSeptiembre from "../assets/products/promo-septiembre.jpg";
 import imgNakedStyle4 from "../assets/products/naked-style-4-3capas.jpg";
 import imgGatoMiniPupcake1 from "../assets/products/gato-mini-pupcake-1.jpg";
 import imgGatoMiniPupcake2 from "../assets/products/gato-mini-pupcake-2.jpg";
+import imgHeartCake from "../assets/products/heart-cake.jpg";
+import imgCookieCake from "../assets/products/cookie-cake.jpg";
+import imgCollarLifestyle from "../assets/products/collar-lifestyle.jpg";
+import imgCollarNavy from "../assets/products/collar-navy.jpg";
+import imgCollarLila from "../assets/products/collar-lila.jpg";
 
-export type Category = "planes" | "cakes" | "pupcakes" | "decor" | "treats" | "promo" | "gatos";
+export type Category = "planes" | "cakes" | "pupcakes" | "decor" | "treats" | "promo" | "gatos" | "accesorios";
 
 export interface Variant {
   id: string;
@@ -37,6 +42,7 @@ export interface Choice {
   label: string;
   options: string[];
   noteOn?: string;
+  optionPrices?: Record<string, number>;
 }
 
 export interface Product {
@@ -212,6 +218,32 @@ export const CATALOG: Product[] = [
     hasColor: true,
   },
   {
+    id: "heart-cake",
+    category: "cakes",
+    name: "Heart Cake",
+    tagline: "6 pulgadas · 2 capas · aprox. 8-10 porciones",
+    price: 35,
+    images: [imgHeartCake],
+    bullets: ["Cake en forma de corazón", "Personalización incluida"],
+    hasFlavor: true,
+    hasColor: true,
+    choice: { label: "Personalización", options: ["Nombre", "Frase", "Toppers personalizados"] },
+  },
+  {
+    id: "cookie-cake",
+    category: "cakes",
+    name: "Cookie Cake",
+    tagline: "Cookie cake individual",
+    price: 12,
+    images: [imgCookieCake],
+    bullets: [
+      "Sabor: mantequilla de maní (única opción disponible)",
+      "Personalizable con nombre, frase corta o número/edad",
+    ],
+    hasColor: true,
+    hasNote: true,
+  },
+  {
     id: "mini-pupcakes",
     category: "pupcakes",
     name: "Mini Pupcakes",
@@ -222,9 +254,17 @@ export const CATALOG: Product[] = [
       { id: "x12", label: "12 mini cupcakes", price: 25 },
       { id: "x24", label: "24 mini cupcakes", price: 45 },
     ],
+    bullets: [
+      "Opción 1 — Cupcakes originales 🧁: personalizados con el nombre de tu peludito",
+      "Opción 2 (+$2.00) — Topper + mini treat 🐾: topper con la carita de tu peludito + mini treat personalizado",
+    ],
     hasFlavor: true,
     hasColor: true,
-    choice: { label: "Topper", options: ["Carita de perrito", "Treat mini personalizado"] },
+    choice: {
+      label: "Elige tu opción favorita",
+      options: ["Cupcakes originales", "Topper + mini treat"],
+      optionPrices: { "Topper + mini treat": 2 },
+    },
     note: "¿Necesitas otra cantidad? Cotiza tu set por WhatsApp.",
   },
   {
@@ -277,6 +317,22 @@ export const CATALOG: Product[] = [
     bullets: ["Ingredientes: comida de gato, huevo y harina de avena", "Frosting: queso crema y Catit creamy"],
     hasFlavor: true,
     flavorOptions: CAT_FLAVORS,
+  },
+  {
+    id: "collar-waterproof",
+    category: "accesorios",
+    name: "Collares Waterproof",
+    tagline: "Resistentes al agua, fáciles de limpiar",
+    price: 10.99,
+    images: [imgCollarLifestyle, imgCollarNavy, imgCollarLila],
+    bullets: [
+      "Waterproof",
+      "Material suave y resistente",
+      "Fácil de limpiar",
+      "Cómodo para tu peludito",
+      "Diseñado para minimizar irritaciones en la piel",
+    ],
+    choice: { label: "Color y talla", options: ["Lila (M)", "Azul (S)"] },
   },
 ];
 

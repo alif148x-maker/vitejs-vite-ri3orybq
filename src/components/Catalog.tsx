@@ -9,6 +9,7 @@ const TABS: { id: Category | "todos"; label: string }[] = [
   { id: "treats", label: "Treats" },
   { id: "decor", label: "Decoración" },
   { id: "gatos", label: "Gatos" },
+  { id: "accesorios", label: "Accesorios" },
 ];
 
 export default function Catalog() {
